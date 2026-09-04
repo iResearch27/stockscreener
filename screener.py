@@ -176,8 +176,8 @@ def build_email_html(results_df):
         for _, r in df.iterrows():
             out += (
                 f"<tr><td>{r['ticker']}</td><td>{r['price']}</td><td>{r['rsi']}</td>"
-                f"<td>{r['pct_to_sma50']}%</td><td>{r['early_score']}/6</td>"
-                f"<td>{r['confirmed_score']}/6</td></tr>"
+                f"<td>{r['pct_to_sma50']}%</td><td>'{r['early_score']}/6</td>"
+                f"<td>'{r['confirmed_score']}/6</td></tr>"
             )
         return out
 
