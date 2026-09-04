@@ -1,0 +1,24 @@
+# One ticker per line, in Yahoo Finance format (NSE stocks need the ".NS" suffix).
+# Lines starting with # are ignored.
+# Add more tickers below (up to 200+) to extend this list — no code changes needed.
+
+AXISBANK.NS
+ICICIBANK.NS
+KOTAKBANK.NS
+ACE.NS
+APTUS.NS
+AAVAS.NS
+VBL.NS
+SENCO.NS
+PNGJL.NS
+LUPIN.NS
+KPIGREEN.NS
+HDFCBANK.NS
+GENUSPOWER.NS
+MGL.NS
+RELIANCE.NS
+TIMETECHNO.NS
+WAAREEENER.NS
+WAAREERTL.NS
+POWERMECH.NS
+UPL.NS
