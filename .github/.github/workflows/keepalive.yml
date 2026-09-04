@@ -1,0 +1,32 @@
+name: Keep Repo Active
+
+# GitHub auto-disables scheduled workflows after 60 days with no commits.
+# This runs monthly and makes a trivial commit so the daily screener
+# schedule never silently stops.
+
+on:
+  schedule:
+    - cron: "0 3 1 * *"   # 3:00 AM UTC on the 1st of every month
+  workflow_dispatch: {}    # allows manual trigger too
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update keepalive timestamp
+        run: |
+          mkdir -p .github
+          echo "Last keepalive run: $(date -u '+%Y-%m-%d %H:%M UTC')" > .github/keepalive.txt
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/keepalive.txt
+          git diff --staged --quiet || git commit -m "chore: keepalive commit"
+          git push
