@@ -1,0 +1,27 @@
+name: Confirmed Uptrend Tracker
+
+on:
+  schedule:
+    # 10:30 UTC = 4:00 PM IST, Mon-Fri (after NSE closes at 3:30 PM IST)
+    - cron: "30 10 * * 1-5"
+  workflow_dispatch: {}   # allows manual "Run workflow" trigger from the Actions tab
+
+jobs:
+  run-uptrend-tracker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run uptrend tracker
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_RECIPIENT: ${{ secrets.ALERT_RECIPIENT }}
+        run: python uptrend_tracker.py
