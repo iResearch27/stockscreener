@@ -67,7 +67,7 @@ def fetch_data(tickers, batch_size=BATCH_SIZE):
 
         for t in batch:
             try:
-                tdf = df if len(batch) == 1 else df[t]
+                tdf = flatten_columns(df) if len(batch) == 1 else df[t]
                 tdf = tdf.dropna(how="all")
                 if len(tdf) < 260:
                     print(f"  Skipping {t}: insufficient history ({len(tdf)} rows)")
@@ -80,10 +80,19 @@ def fetch_data(tickers, batch_size=BATCH_SIZE):
     return data
 
 
+def flatten_columns(df):
+    """Newer yfinance versions return MultiIndex columns even for a single ticker.
+    Flatten to plain column names (Open, High, Low, Close, Volume)."""
+    if isinstance(df.columns, pd.MultiIndex):
+        df = df.copy()
+        df.columns = df.columns.get_level_values(0)
+    return df
+
+
 def fetch_benchmark():
     df = yf.download(BENCHMARK_TICKER, period=LOOKBACK_PERIOD, interval="1d",
                       auto_adjust=True, progress=False)
-    return df.dropna(how="all")
+    return flatten_columns(df.dropna(how="all"))
 
 
 # ============================================================
