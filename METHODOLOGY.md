@@ -145,16 +145,16 @@ best-effort and can run a few minutes late.
 
 | Workflow file | Runs | Cron (UTC) |
 |---|---|---|
-| `daily_screener.yml` | Turnaround screener, Mon-Fri. Designed as three runs: 9:30 AM, 1:30 PM, 4:00 PM IST | `0 4`, `0 8`, `30 10` (`* * 1-5`) |
+| `daily_screener.yml` | Turnaround screener, Mon-Fri 4:00 PM IST | `30 10 * * 1-5` |
 | `uptrend_tracker.yml` | Uptrend tracker, Mon-Fri 4:00 PM IST | `30 10 * * 1-5` |
 | `keepalive.yml` | Monthly commit, 1st of each month 3:00 AM UTC | `0 3 1 * *` |
 
-Check the `cron:` lines inside `.github/workflows/daily_screener.yml` to see which schedule is live.
 All workflows can also be run by hand from the Actions tab (**Run workflow**).
 
 **Daily bars caveat:** both trackers use daily candles, which only finalise after NSE closes (3:30 PM IST),
-and Yahoo can lag after the close. Runs at 9:30 AM and 1:30 PM therefore show the previous close,
-so only the 4:00 PM run can carry new information.
+and Yahoo can lag after the close. A three-runs-a-day schedule (9:30 AM, 1:30 PM, 4:00 PM IST) was
+considered but not adopted, because the morning and afternoon runs would only repeat the previous close.
+Only the 4:00 PM run carries new information.
 Switching to intraday bars was considered and rejected: the SMA/RSI/MACD periods count bars, so on
 15-minute bars the "SMA200" would cover about 8 trading days instead of about 10 months, which changes what the signals mean.
 Yahoo also only provides about 60 days of intraday history.
