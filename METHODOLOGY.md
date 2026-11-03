@@ -82,6 +82,25 @@ switch on.
   (a "4/6" style value was auto-converted to a date when pasted into Excel).
 - Subject: `Turnaround Screener - <date> (<N> scanned)`.
 
+### 2.4a Stabilizing after oversold flag and liquidity filter (added Nov 2026)
+
+**Stabilizing** is a separate yes/no flag (not part of the Early/Confirmed scores). It is meant to separate a base
+from a falling knife. All four must be true:
+
+1. RSI(14) was below 30 at some point in the last 10 days.
+2. The lowest close of the last 20 days was at least 5 trading days ago (no fresh low).
+3. The close is back above its 10-day average.
+4. The bounce from that low is no more than 15% (so it is not already a chase).
+
+The email shows a "Stabilizing after oversold" table (sorted by smallest bounce first) plus Stabilizing and
+"Bounce from low" columns. Constants: `STAB_OVERSOLD_RSI`, `STAB_OVERSOLD_LOOKBACK`, `STAB_LOW_WINDOW`,
+`STAB_MIN_DAYS_SINCE_LOW`, `STAB_MAX_BOUNCE_PCT`, `STAB_SMA_DAYS`.
+
+**Liquidity filter.** A stock is low-liquidity if its 20-day average volume is under 100,000 shares or its
+average traded value is under Rs 1 crore per day (`MIN_AVG_VOLUME`, `MIN_AVG_TRADED_VALUE`). Low-liquidity stocks are
+still listed in the full table, marked "(low liq)", but are excluded from the Flagged and Stabilizing tables.
+The email also shows "Avg Vol (20d)".
+
 ### 2.5 Data handling
 
 - Source: `yfinance` (Yahoo Finance), 2 years of daily bars, split/dividend adjusted.
@@ -108,6 +127,13 @@ The benchmark is the Nifty 50 (`^NSEI`).
 - **Flagged** if score >= 4 (`MIN_UPTREND_SCORE`). Sorted by score, then by "vs Nifty (3M)".
 - Email columns: Ticker, Price, % From 52wk High, 3M Return, vs Nifty (3M), Avg RSI (10d), Uptrend/6.
   The Nifty 3-month return is shown at the top. "vs Nifty (3M)" is the most informative column to scan first.
+- **Pullback to SMA50 flag** (added Nov 2026, separate from the 6-point score; an entry watch, not a trend signal).
+  All must be true: SMA50 above SMA200 and higher than 10 days ago, close above SMA200, 3-month return beating Nifty,
+  close between 2% below and 3% above the SMA50, and close at least 3% below its 20-day closing high.
+  It deliberately does not require U3, since a pullback may briefly touch or dip under the SMA50.
+  The email adds a "Pullback to SMA50 (entry watch)" table (SMA50, % vs SMA50, % off 20d high) and a Pullback column.
+  Constants: `PULLBACK_ABOVE_PCT`, `PULLBACK_BELOW_PCT`, `PULLBACK_MIN_DROP_PCT`, `SMA50_SLOPE_DAYS`.
+  A pullback can still turn into a trend break, so a stop below the SMA50 is sensible.
 - Watchlist is separate from the turnaround screener: `uptrend_watchlist.txt` (same ticker format).
 - A ticker with fewer than 260 rows of history is skipped (it needs about a year for the 52-week high and SMA200).
 - Tunable constants at the top of `uptrend_tracker.py`: `NEAR_52WK_PCT`, `SUSTAINED_DAYS`, `SWING_LOOKBACK`, `RS_LOOKBACK`, `RSI_SUSTAIN_DAYS`.
