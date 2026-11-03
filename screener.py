@@ -28,6 +28,19 @@ OBV_DIV_LOOKBACK = 15
 SWING_LOOKBACK = 10
 NEAR_PCT = 5.0               # "nearing SMA50" threshold, in %
 
+# --- Liquidity filter: thin stocks are shown but never flagged ---
+LIQ_LOOKBACK = 20                # days used for average volume / traded value
+MIN_AVG_VOLUME = 100_000         # minimum average daily shares traded
+MIN_AVG_TRADED_VALUE = 1e7       # minimum average daily traded value, in INR (1e7 = Rs 1 crore)
+
+# --- "Stabilizing after oversold" flag ---
+STAB_OVERSOLD_RSI = 30           # RSI must have dipped below this recently...
+STAB_OVERSOLD_LOOKBACK = 10      # ...within this many trading days
+STAB_LOW_WINDOW = 20             # window used to locate the recent low
+STAB_MIN_DAYS_SINCE_LOW = 5      # no fresh low for at least this many days
+STAB_MAX_BOUNCE_PCT = 15.0       # skip if already bounced more than this from the low (don't chase)
+STAB_SMA_DAYS = 10               # price must be back above this short average
+
 
 # ============================================================
 # DATA FETCH
@@ -115,6 +128,7 @@ def score_stock(df):
     sma50 = close.rolling(50).mean()
     sma200 = close.rolling(200).mean()
     sma20 = close.rolling(20).mean()
+    sma_short = close.rolling(STAB_SMA_DAYS).mean()
     rsi = compute_rsi(close, 14)
     macd_line, signal_line, hist = compute_macd(close)
     obv = compute_obv(close, volume)
@@ -153,12 +167,34 @@ def score_stock(df):
     e6 = close_1ago <= sma20_1ago and c_now > c20
     early_score = sum([e1, e2, e3, e4, e5, e6])
 
+    # ---- STABILIZING AFTER OVERSOLD ----
+    # Was oversold recently, has stopped making new lows, and is turning up -- without
+    # having already run away. Helps separate a base from a falling knife.
+    window = close.tail(STAB_LOW_WINDOW)
+    low_val = float(window.min())
+    days_since_low = len(window) - 1 - int(np.argmin(window.values))
+    was_oversold = bool(rsi.tail(STAB_OVERSOLD_LOOKBACK).min() < STAB_OVERSOLD_RSI)
+    no_new_low = days_since_low >= STAB_MIN_DAYS_SINCE_LOW
+    above_short_sma = bool(c_now > sma_short.iloc[i])
+    bounce_pct = (c_now - low_val) / low_val * 100
+    not_chasing = bounce_pct <= STAB_MAX_BOUNCE_PCT
+    stabilizing = bool(was_oversold and no_new_low and above_short_sma and not_chasing)
+
+    # ---- LIQUIDITY ----
+    avg_volume = float(volume.tail(LIQ_LOOKBACK).mean())
+    avg_value = float((close * volume).tail(LIQ_LOOKBACK).mean())
+    liquid = bool(avg_volume >= MIN_AVG_VOLUME and avg_value >= MIN_AVG_TRADED_VALUE)
+
     return {
         "price": round(float(c_now), 2),
         "rsi": round(float(rsi_now), 2),
         "pct_to_sma50": round(float(pct_to_sma50), 2),
         "confirmed_score": int(confirmed_score),
         "early_score": int(early_score),
+        "stabilizing": stabilizing,
+        "bounce_pct": round(float(bounce_pct), 2),
+        "avg_volume": avg_volume,
+        "liquid": liquid,
     }
 
 
@@ -204,34 +240,55 @@ def warning_html(warns):
 
 
 def build_email_html(results_df, data_as_of="", warns=None):
-    flagged = results_df[
-        (results_df.confirmed_score >= MIN_CONFIRMED_SCORE) |
-        (results_df.early_score >= MIN_EARLY_SCORE)
-    ].sort_values(["early_score", "confirmed_score"], ascending=False)
+    sort_cols = ["early_score", "confirmed_score"]
+    liquid_df = results_df[results_df.liquid]
 
-    all_sorted = results_df.sort_values(["early_score", "confirmed_score"], ascending=False)
+    # Low-liquidity stocks are listed in the full table but never flagged.
+    flagged = liquid_df[
+        (liquid_df.confirmed_score >= MIN_CONFIRMED_SCORE) |
+        (liquid_df.early_score >= MIN_EARLY_SCORE)
+    ].sort_values(sort_cols, ascending=False)
+    stabilizing = liquid_df[liquid_df.stabilizing].sort_values("bounce_pct")
+    all_sorted = results_df.sort_values(sort_cols, ascending=False)
+    n_low_liq = int((~results_df.liquid).sum())
 
     def rows(df):
         out = ""
         for _, r in df.iterrows():
+            name = r["ticker"] + ("" if r["liquid"] else " (low liq)")
             out += (
-                f"<tr><td>{r['ticker']}</td><td>{r['price']}</td><td>{r['rsi']}</td>"
+                f"<tr><td>{name}</td><td>{r['price']}</td><td>{r['rsi']}</td>"
                 f"<td>{r['pct_to_sma50']}%</td><td>{r['early_score']}</td>"
-                f"<td>{r['confirmed_score']}</td></tr>"
+                f"<td>{r['confirmed_score']}</td>"
+                f"<td>{'Yes' if r['stabilizing'] else '-'}</td>"
+                f"<td>{r['bounce_pct']}%</td><td>{r['avg_volume']:,.0f}</td></tr>"
             )
         return out
 
-    header = "<tr><th>Ticker</th><th>Price</th><th>RSI</th><th>% to SMA50</th><th>Early/6</th><th>Confirmed/6</th></tr>"
+    header = (
+        "<tr><th>Ticker</th><th>Price</th><th>RSI</th><th>% to SMA50</th>"
+        "<th>Early/6</th><th>Confirmed/6</th><th>Stabilizing</th>"
+        "<th>Bounce from low</th><th>Avg Vol (20d)</th></tr>"
+    )
 
     return f"""
     <html><body style="font-family: Arial, sans-serif;">
     <h2>Turnaround Screener — {datetime.now().strftime('%d %b %Y')}</h2>
     {warning_html(warns)}
     <p>Data as of last close: {data_as_of}</p>
-    <p>{len(results_df)} stocks scanned, {len(flagged)} flagged (Confirmed ≥ {MIN_CONFIRMED_SCORE} or Early ≥ {MIN_EARLY_SCORE}).</p>
+    <p>{len(results_df)} stocks scanned, {len(flagged)} flagged (Confirmed ≥ {MIN_CONFIRMED_SCORE} or Early ≥ {MIN_EARLY_SCORE}),
+    {len(stabilizing)} stabilizing after oversold.</p>
+    <p style="color:#666;font-size:12px;">
+    Low liquidity = under {MIN_AVG_VOLUME:,} shares or under Rs {MIN_AVG_TRADED_VALUE/1e7:g} crore traded per day (20-day average).
+    {n_low_liq} such stock(s) are marked "(low liq)" in the full list and excluded from the flagged and stabilizing tables.<br>
+    Stabilizing = RSI fell below {STAB_OVERSOLD_RSI} in the last {STAB_OVERSOLD_LOOKBACK} days, no new low for {STAB_MIN_DAYS_SINCE_LOW}+ days,
+    price back above its {STAB_SMA_DAYS}-day average, and bounce from the low no more than {STAB_MAX_BOUNCE_PCT:g}%.</p>
 
     <h3>Flagged</h3>
     <table border="1" cellpadding="6" cellspacing="0">{header}{rows(flagged)}</table>
+
+    <h3>Stabilizing after oversold</h3>
+    <table border="1" cellpadding="6" cellspacing="0">{header}{rows(stabilizing)}</table>
 
     <h3>Full list</h3>
     <table border="1" cellpadding="4" cellspacing="0">{header}{rows(all_sorted)}</table>
