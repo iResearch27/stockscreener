@@ -173,7 +173,45 @@ def score_stock(df, nifty_return_3m):
 # ============================================================
 # EMAIL
 # ============================================================
-def build_email_html(results_df, nifty_return_3m, data_as_of=""):
+def build_warnings(data, n_requested):
+    """Return a list of human-readable data-quality warnings for the email."""
+    from zoneinfo import ZoneInfo
+    warns = []
+    last_dates = {t: df.index[-1].normalize() for t, df in data.items()}
+    newest = max(last_dates.values())
+    today = pd.Timestamp(datetime.now(ZoneInfo("Asia/Kolkata")).date())
+
+    lag = int(np.busday_count(newest.date(), today.date()))
+    if lag >= 1:
+        warns.append(
+            f"Latest data is from {newest.strftime('%d %b %Y')}, {lag} trading day(s) behind today. "
+            "Today may be a market holiday, or Yahoo has not finalized today's close yet."
+        )
+
+    behind = sorted(t for t, d in last_dates.items() if d < newest)
+    if behind:
+        shown = ", ".join(behind[:10]) + (" ..." if len(behind) > 10 else "")
+        warns.append(f"{len(behind)} ticker(s) have older data than the rest: {shown}")
+
+    if n_requested and len(data) < 0.9 * n_requested:
+        warns.append(
+            f"Only {len(data)} of {n_requested} tickers loaded (under 90%). "
+            "Results may be incomplete; some downloads probably failed."
+        )
+    return warns
+
+
+def warning_html(warns):
+    if not warns:
+        return ""
+    items = "".join(f"<li>{w}</li>" for w in warns)
+    return (
+        '<div style="background:#fff3cd;border:1px solid #e0a800;padding:8px 12px;margin:8px 0;">'
+        f"<b>Data check</b><ul style='margin:4px 0;'>{items}</ul></div>"
+    )
+
+
+def build_email_html(results_df, nifty_return_3m, data_as_of="", warns=None):
     flagged = results_df[results_df.uptrend_score >= MIN_UPTREND_SCORE].sort_values(
         ["uptrend_score", "vs_nifty_3m"], ascending=False
     )
@@ -199,6 +237,7 @@ def build_email_html(results_df, nifty_return_3m, data_as_of=""):
     return f"""
     <html><body style="font-family: Arial, sans-serif;">
     <h2>Confirmed Uptrend Tracker — {datetime.now().strftime('%d %b %Y')}</h2>
+    {warning_html(warns)}
     <p>Data as of last close: {data_as_of}</p>
     <p>Nifty 50 3-month return: {round(nifty_return_3m, 2)}%</p>
     <p>{len(results_df)} stocks scanned, {len(flagged)} flagged (Uptrend score ≥ {MIN_UPTREND_SCORE}/6).</p>
@@ -269,8 +308,11 @@ def main():
 
     results_df = pd.DataFrame(results)
     data_as_of = max(df.index[-1] for df in data.values()).strftime("%d %b %Y")
-    html = build_email_html(results_df, nifty_return_3m, data_as_of)
-    subject = f"Confirmed Uptrend Tracker — {datetime.now().strftime('%d %b %Y')} ({len(results_df)} scanned)"
+    warns = build_warnings(data, len(tickers))
+    for w in warns:
+        print("WARNING:", w)
+    html = build_email_html(results_df, nifty_return_3m, data_as_of, warns)
+    subject = ("[CHECK DATA] " if warns else "") + f"Confirmed Uptrend Tracker — {datetime.now().strftime('%d %b %Y')} ({len(results_df)} scanned)"
     send_email(subject, html)
 
 
