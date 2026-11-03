@@ -68,7 +68,9 @@ def fetch_data(tickers, batch_size=BATCH_SIZE):
         for t in batch:
             try:
                 tdf = flatten_columns(df) if len(batch) == 1 else df[t]
-                tdf = tdf.dropna(how="all")
+                # Drop rows with no Close (Yahoo sometimes returns a partial/unfinalized
+                # latest-day row with NaN Close, which would make every metric "nan").
+                tdf = tdf.dropna(subset=["Close"])
                 if len(tdf) < 260:
                     print(f"  Skipping {t}: insufficient history ({len(tdf)} rows)")
                     continue
@@ -92,7 +94,7 @@ def flatten_columns(df):
 def fetch_benchmark():
     df = yf.download(BENCHMARK_TICKER, period=LOOKBACK_PERIOD, interval="1d",
                       auto_adjust=True, progress=False)
-    return flatten_columns(df.dropna(how="all"))
+    return flatten_columns(df).dropna(subset=["Close"])
 
 
 # ============================================================
@@ -171,7 +173,7 @@ def score_stock(df, nifty_return_3m):
 # ============================================================
 # EMAIL
 # ============================================================
-def build_email_html(results_df, nifty_return_3m):
+def build_email_html(results_df, nifty_return_3m, data_as_of=""):
     flagged = results_df[results_df.uptrend_score >= MIN_UPTREND_SCORE].sort_values(
         ["uptrend_score", "vs_nifty_3m"], ascending=False
     )
@@ -197,6 +199,7 @@ def build_email_html(results_df, nifty_return_3m):
     return f"""
     <html><body style="font-family: Arial, sans-serif;">
     <h2>Confirmed Uptrend Tracker — {datetime.now().strftime('%d %b %Y')}</h2>
+    <p>Data as of last close: {data_as_of}</p>
     <p>Nifty 50 3-month return: {round(nifty_return_3m, 2)}%</p>
     <p>{len(results_df)} stocks scanned, {len(flagged)} flagged (Uptrend score ≥ {MIN_UPTREND_SCORE}/6).</p>
 
@@ -265,7 +268,8 @@ def main():
         return
 
     results_df = pd.DataFrame(results)
-    html = build_email_html(results_df, nifty_return_3m)
+    data_as_of = max(df.index[-1] for df in data.values()).strftime("%d %b %Y")
+    html = build_email_html(results_df, nifty_return_3m, data_as_of)
     subject = f"Confirmed Uptrend Tracker — {datetime.now().strftime('%d %b %Y')} ({len(results_df)} scanned)"
     send_email(subject, html)
 
