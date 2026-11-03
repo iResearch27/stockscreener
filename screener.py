@@ -63,7 +63,9 @@ def fetch_data(tickers, batch_size=BATCH_SIZE):
         for t in batch:
             try:
                 tdf = df if len(batch) == 1 else df[t]
-                tdf = tdf.dropna(how="all")
+                # Drop rows with no Close (Yahoo sometimes returns a partial/unfinalized
+                # latest-day row with NaN Close, which would make every metric "nan").
+                tdf = tdf.dropna(subset=["Close"])
                 if len(tdf) < 210:
                     print(f"  Skipping {t}: insufficient history ({len(tdf)} rows)")
                     continue
@@ -163,7 +165,7 @@ def score_stock(df):
 # ============================================================
 # EMAIL
 # ============================================================
-def build_email_html(results_df):
+def build_email_html(results_df, data_as_of=""):
     flagged = results_df[
         (results_df.confirmed_score >= MIN_CONFIRMED_SCORE) |
         (results_df.early_score >= MIN_EARLY_SCORE)
@@ -186,6 +188,7 @@ def build_email_html(results_df):
     return f"""
     <html><body style="font-family: Arial, sans-serif;">
     <h2>Turnaround Screener — {datetime.now().strftime('%d %b %Y')}</h2>
+    <p>Data as of last close: {data_as_of}</p>
     <p>{len(results_df)} stocks scanned, {len(flagged)} flagged (Confirmed ≥ {MIN_CONFIRMED_SCORE} or Early ≥ {MIN_EARLY_SCORE}).</p>
 
     <h3>Flagged</h3>
@@ -238,7 +241,8 @@ def main():
         return
 
     results_df = pd.DataFrame(results)
-    html = build_email_html(results_df)
+    data_as_of = max(df.index[-1] for df in data.values()).strftime("%d %b %Y")
+    html = build_email_html(results_df, data_as_of)
     subject = f"Turnaround Screener — {datetime.now().strftime('%d %b %Y')} ({len(results_df)} scanned)"
     send_email(subject, html)
 
