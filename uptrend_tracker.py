@@ -33,6 +33,12 @@ SWING_LOOKBACK = 20           # window for higher-high / higher-low structure ch
 RS_LOOKBACK = 63              # ~3 months of trading days, for relative strength vs Nifty
 RSI_SUSTAIN_DAYS = 10         # average RSI over this many days must stay above 50
 
+# --- "Pullback to SMA50" entry flag ---
+PULLBACK_ABOVE_PCT = 3.0      # price at most this % above the SMA50...
+PULLBACK_BELOW_PCT = 2.0      # ...and at most this % below it
+PULLBACK_MIN_DROP_PCT = 3.0   # must be at least this % off its 20-day closing high
+SMA50_SLOPE_DAYS = 10         # SMA50 must be higher than it was this many days ago
+
 
 # ============================================================
 # DATA FETCH
@@ -160,8 +166,25 @@ def score_stock(df, nifty_return_3m):
         c4_higherHighLow, c5_outperformingNifty, c6_sustainedMomentum,
     ])
 
+    # ---- PULLBACK TO SMA50 (entry watch) ----
+    # Healthy uptrend (SMA50 above SMA200 and rising, price above SMA200, beating Nifty)
+    # that has dipped back to the SMA50 zone. Deliberately does not require condition 3
+    # (20 straight closes above SMA50), since a pullback may briefly touch or dip under it.
+    sma50_rising = bool(sma50_now > sma50.iloc[i - SMA50_SLOPE_DAYS])
+    trend_intact = bool(sma50_now > sma200_now and sma50_rising and c_now > sma200_now)
+    pct_vs_sma50 = (c_now - sma50_now) / sma50_now * 100
+    in_zone = -PULLBACK_BELOW_PCT <= pct_vs_sma50 <= PULLBACK_ABOVE_PCT
+    recent_peak = close.tail(20).max()
+    off_peak_pct = (recent_peak - c_now) / recent_peak * 100
+    pulled_back = off_peak_pct >= PULLBACK_MIN_DROP_PCT
+    pullback = bool(trend_intact and c5_outperformingNifty and in_zone and pulled_back)
+
     return {
         "price": round(float(c_now), 2),
+        "sma50": round(float(sma50_now), 2),
+        "pct_vs_sma50": round(float(pct_vs_sma50), 2),
+        "off_peak_pct": round(float(off_peak_pct), 2),
+        "pullback": pullback,
         "pct_from_52wk_high": round(float(pct_from_high), 2),
         "stock_return_3m": round(float(stock_return_3m), 2),
         "vs_nifty_3m": round(float(stock_return_3m - nifty_return_3m), 2),
@@ -212,10 +235,12 @@ def warning_html(warns):
 
 
 def build_email_html(results_df, nifty_return_3m, data_as_of="", warns=None):
+    sort_cols = ["uptrend_score", "vs_nifty_3m"]
     flagged = results_df[results_df.uptrend_score >= MIN_UPTREND_SCORE].sort_values(
-        ["uptrend_score", "vs_nifty_3m"], ascending=False
+        sort_cols, ascending=False
     )
-    all_sorted = results_df.sort_values(["uptrend_score", "vs_nifty_3m"], ascending=False)
+    pullbacks = results_df[results_df.pullback].sort_values("pct_vs_sma50")
+    all_sorted = results_df.sort_values(sort_cols, ascending=False)
 
     def rows(df):
         out = ""
@@ -224,6 +249,18 @@ def build_email_html(results_df, nifty_return_3m, data_as_of="", warns=None):
                 f"<tr><td>{r['ticker']}</td><td>{r['price']}</td>"
                 f"<td>{r['pct_from_52wk_high']}%</td><td>{r['stock_return_3m']}%</td>"
                 f"<td>{r['vs_nifty_3m']}%</td><td>{r['rsi_avg10d']}</td>"
+                f"<td>{r['uptrend_score']}</td>"
+                f"<td>{'Yes' if r['pullback'] else '-'}</td></tr>"
+            )
+        return out
+
+    def pullback_rows(df):
+        out = ""
+        for _, r in df.iterrows():
+            out += (
+                f"<tr><td>{r['ticker']}</td><td>{r['price']}</td><td>{r['sma50']}</td>"
+                f"<td>{r['pct_vs_sma50']}%</td><td>{r['off_peak_pct']}%</td>"
+                f"<td>{r['vs_nifty_3m']}%</td><td>{r['rsi_avg10d']}</td>"
                 f"<td>{r['uptrend_score']}</td></tr>"
             )
         return out
@@ -231,6 +268,11 @@ def build_email_html(results_df, nifty_return_3m, data_as_of="", warns=None):
     header = (
         "<tr><th>Ticker</th><th>Price</th><th>% From 52wk High</th>"
         "<th>3M Return</th><th>vs Nifty (3M)</th><th>Avg RSI (10d)</th>"
+        "<th>Uptrend/6</th><th>Pullback</th></tr>"
+    )
+    pullback_header = (
+        "<tr><th>Ticker</th><th>Price</th><th>SMA50</th><th>% vs SMA50</th>"
+        "<th>% Off 20d High</th><th>vs Nifty (3M)</th><th>Avg RSI (10d)</th>"
         "<th>Uptrend/6</th></tr>"
     )
 
@@ -240,10 +282,18 @@ def build_email_html(results_df, nifty_return_3m, data_as_of="", warns=None):
     {warning_html(warns)}
     <p>Data as of last close: {data_as_of}</p>
     <p>Nifty 50 3-month return: {round(nifty_return_3m, 2)}%</p>
-    <p>{len(results_df)} stocks scanned, {len(flagged)} flagged (Uptrend score ≥ {MIN_UPTREND_SCORE}/6).</p>
+    <p>{len(results_df)} stocks scanned, {len(flagged)} flagged (Uptrend score ≥ {MIN_UPTREND_SCORE}/6),
+    {len(pullbacks)} pulling back to the SMA50.</p>
+    <p style="color:#666;font-size:12px;">
+    Pullback to SMA50 = SMA50 above SMA200 and rising, price above SMA200, beating Nifty over 3M, price within
+    {PULLBACK_BELOW_PCT:g}% below to {PULLBACK_ABOVE_PCT:g}% above the SMA50, and at least {PULLBACK_MIN_DROP_PCT:g}% off its 20-day high.
+    A pullback can still become a trend break; consider a stop below the SMA50.</p>
 
     <h3>Flagged</h3>
     <table border="1" cellpadding="6" cellspacing="0">{header}{rows(flagged)}</table>
+
+    <h3>Pullback to SMA50 (entry watch)</h3>
+    <table border="1" cellpadding="6" cellspacing="0">{pullback_header}{pullback_rows(pullbacks)}</table>
 
     <h3>Full list</h3>
     <table border="1" cellpadding="4" cellspacing="0">{header}{rows(all_sorted)}</table>
