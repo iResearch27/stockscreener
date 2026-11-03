@@ -92,9 +92,10 @@ from a falling knife. All four must be true:
 3. The close is back above its 10-day average.
 4. The bounce from that low is no more than 15% (so it is not already a chase).
 
-The email shows a "Stabilizing after oversold" table (sorted by smallest bounce first) plus Stabilizing and
-"Bounce from low" columns. Constants: `STAB_OVERSOLD_RSI`, `STAB_OVERSOLD_LOOKBACK`, `STAB_LOW_WINDOW`,
-`STAB_MIN_DAYS_SINCE_LOW`, `STAB_MAX_BOUNCE_PCT`, `STAB_SMA_DAYS`.
+The email shows a "Stabilizing after oversold" table plus Stabilizing and "Bounce from low" columns.
+The table lists only stocks with Early >= 2 (`STAB_MIN_EARLY_SCORE`; set to 0 to list all), sorted by Early score
+(high to low) and then smallest bounce first. Stabilizing stocks with a lower Early score stay marked "Yes" in the full list. Constants: `STAB_OVERSOLD_RSI`, `STAB_OVERSOLD_LOOKBACK`, `STAB_LOW_WINDOW`,
+`STAB_MIN_DAYS_SINCE_LOW`, `STAB_MAX_BOUNCE_PCT`, `STAB_SMA_DAYS`, `STAB_MIN_EARLY_SCORE`.
 
 **Liquidity filter.** A stock is low-liquidity if its 20-day average volume is under 100,000 shares or its
 average traded value is under Rs 1 crore per day (`MIN_AVG_VOLUME`, `MIN_AVG_TRADED_VALUE`). Low-liquidity stocks are
