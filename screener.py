@@ -40,6 +40,7 @@ STAB_LOW_WINDOW = 20             # window used to locate the recent low
 STAB_MIN_DAYS_SINCE_LOW = 5      # no fresh low for at least this many days
 STAB_MAX_BOUNCE_PCT = 15.0       # skip if already bounced more than this from the low (don't chase)
 STAB_SMA_DAYS = 10               # price must be back above this short average
+STAB_MIN_EARLY_SCORE = 2         # stabilizing table only lists stocks with at least this Early score (0 = list all)
 
 
 # ============================================================
@@ -248,7 +249,12 @@ def build_email_html(results_df, data_as_of="", warns=None):
         (liquid_df.confirmed_score >= MIN_CONFIRMED_SCORE) |
         (liquid_df.early_score >= MIN_EARLY_SCORE)
     ].sort_values(sort_cols, ascending=False)
-    stabilizing = liquid_df[liquid_df.stabilizing].sort_values("bounce_pct")
+    stab_all = liquid_df[liquid_df.stabilizing]
+    # Best candidates first: higher Early score, then smallest bounce from the low.
+    stabilizing = stab_all[stab_all.early_score >= STAB_MIN_EARLY_SCORE].sort_values(
+        ["early_score", "bounce_pct"], ascending=[False, True]
+    )
+    n_stab_hidden = len(stab_all) - len(stabilizing)
     all_sorted = results_df.sort_values(sort_cols, ascending=False)
     n_low_liq = int((~results_df.liquid).sum())
 
@@ -277,12 +283,14 @@ def build_email_html(results_df, data_as_of="", warns=None):
     {warning_html(warns)}
     <p>Data as of last close: {data_as_of}</p>
     <p>{len(results_df)} stocks scanned, {len(flagged)} flagged (Confirmed ≥ {MIN_CONFIRMED_SCORE} or Early ≥ {MIN_EARLY_SCORE}),
-    {len(stabilizing)} stabilizing after oversold.</p>
+    {len(stabilizing)} stabilizing after oversold with Early ≥ {STAB_MIN_EARLY_SCORE}
+    ({n_stab_hidden} more stabilizing with a lower Early score are marked "Yes" in the full list).</p>
     <p style="color:#666;font-size:12px;">
     Low liquidity = under {MIN_AVG_VOLUME:,} shares or under Rs {MIN_AVG_TRADED_VALUE/1e7:g} crore traded per day (20-day average).
     {n_low_liq} such stock(s) are marked "(low liq)" in the full list and excluded from the flagged and stabilizing tables.<br>
     Stabilizing = RSI fell below {STAB_OVERSOLD_RSI} in the last {STAB_OVERSOLD_LOOKBACK} days, no new low for {STAB_MIN_DAYS_SINCE_LOW}+ days,
-    price back above its {STAB_SMA_DAYS}-day average, and bounce from the low no more than {STAB_MAX_BOUNCE_PCT:g}%.</p>
+    price back above its {STAB_SMA_DAYS}-day average, and bounce from the low no more than {STAB_MAX_BOUNCE_PCT:g}%.
+    The stabilizing table is sorted by Early score (high to low), then smallest bounce.</p>
 
     <h3>Flagged</h3>
     <table border="1" cellpadding="6" cellspacing="0">{header}{rows(flagged)}</table>
