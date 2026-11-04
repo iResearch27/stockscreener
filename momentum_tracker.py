@@ -359,9 +359,12 @@ def participation_label(p):
 def build_email_html(df, nifty_return, data_as_of="", warns=None):
     counts = df["state"].value_counts()
 
-    def rows(sub):
+    def rows(sub, building=False):
+        # Building: fastest improvers first (RS change), then strength score.
+        # All other states: strength score, highest first.
+        sort_cols = ["rs_change", "score"] if building else ["score"]
         out = ""
-        for _, r in sub.sort_values("score", ascending=False).iterrows():
+        for _, r in sub.sort_values(sort_cols, ascending=False).iterrows():
             out += (
                 f"<tr><td>{r['ticker']}</td><td>{r['score']:.0f}</td>"
                 f"<td>{r['rs_rank']:.0f}</td><td>{r['rs_change']:+.0f}</td>"
@@ -373,13 +376,13 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
         return out
 
     header = (
-        "<tr><th>Ticker</th><th>Score</th><th>RS rank</th><th>RS chg (21d)</th>"
+        "<tr><th>Ticker</th><th>Strength score</th><th>RS rank</th><th>RS chg (21d)</th>"
         "<th>vs Nifty (3M)</th><th>Trend</th><th>Participation</th>"
         "<th>Stretch (ATR)</th><th>RSI</th><th>Action</th></tr>"
     )
 
     blurbs = {
-        "Building": "Turning up from a base with rank improving and volume support, and not among the weakest stocks. The entry zone: consider buying in tranches.",
+        "Building": "Turning up from a base with rank improving and volume support, and not among the weakest stocks. The entry zone: consider buying in tranches. Sorted by RS change (fastest improvers first); a low strength score is normal here, since these stocks are early in their recovery.",
         "Strong": "Confirmed uptrend, high relative strength, beating Nifty. Add on a pullback toward the SMA50 rather than chasing.",
         "Extended": "Strong but stretched far above its averages. Don't chase; tighten stops if you hold.",
         "Fading": "Below the SMA50 with relative strength falling. Avoid new money; review if you hold.",
@@ -390,7 +393,7 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
         sub = df[df.state == state]
         sections += (
             f"<h3>{state} ({len(sub)})</h3><p style='color:#666;font-size:12px;'>{blurbs[state]}</p>"
-            f"<table border='1' cellpadding='5' cellspacing='0'>{header}{rows(sub)}</table>"
+            f"<table border='1' cellpadding='5' cellspacing='0'>{header}{rows(sub, building=(state == "Building"))}</table>"
         )
 
     rest = df[df.state.isin(["Neutral", "Dormant"])].sort_values("score", ascending=False)
@@ -418,8 +421,11 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
     <p style="color:#666;font-size:12px;">
     RS rank = percentile of a blended 1/3/6/12-month return among all stocks scanned (100 = strongest).
     RS chg = rank change over 21 trading days. Trend = 4 checks on SMA50/SMA200. Participation = 3 volume/OBV checks.
-    Stretch = distance above the SMA50 in ATRs (Extended at {EXTENDED_ATR_MULT:g}x or more). Score sorts stocks within a state only.
+    Stretch = distance above the SMA50 in ATRs (Extended at {EXTENDED_ATR_MULT:g}x or more). Strength score is explained below.
     Price and volume signals only; no earnings or fundamentals. Not investment advice.</p>
+    <p style="font-size:12px;"><b>Strength score (0-100)</b> = {W_RANK:g} x RS rank + {W_TREND:g} x (Trend / 4 x 100) + {W_PART:g} x (Participation / 3 x 100).
+    It measures how strong a stock is <i>now</i>, not how good an entry it is. It sorts stocks within each state
+    (Building is sorted by RS change instead). A stock turning up from a weak base can have a low score and still be Building.</p>
 
     <h3>What each state means and what to do</h3>
     <table border="1" cellpadding="5" cellspacing="0">
@@ -429,7 +435,7 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
 
     <h3>Neutral and Dormant ({len(rest)})</h3>
     <table border="1" cellpadding="4" cellspacing="0">
-    <tr><th>Ticker</th><th>State</th><th>Score</th><th>RS rank</th><th>vs Nifty (3M)</th><th>Trend</th><th>Action</th></tr>
+    <tr><th>Ticker</th><th>State</th><th>Strength score</th><th>RS rank</th><th>vs Nifty (3M)</th><th>Trend</th><th>Action</th></tr>
     {rest_rows}</table>
 
     <h3>Low liquidity (no state given)</h3>
