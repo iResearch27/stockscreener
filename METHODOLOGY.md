@@ -162,6 +162,11 @@ so it needs the whole list scored in one run. Run schedule: 4:10 PM IST, Monday 
   Labels: Confirming (3), Mixed (1 or 2), Not confirming (0).
 - **Stretch:** `ext_ATR = (close - SMA50) / ATR14` (ATR = average true range, a measure of typical daily movement,
   so a calm bank and a volatile small-cap are comparable). Stretched if `ext_ATR >= 6`, or RSI >= 70 and more than 10% above the SMA50.
+- **Absolute momentum (added Nov 2026):** the stock's own 1-, 3- and 6-month returns, independent of the other stocks.
+  RS rank only says how a stock compares with your list, so a stock can rank well and still be falling in a weak group.
+  Displayed: 3M return. Used in rules: 1-month return (Building) and 6-month return (Strong).
+- **Trend quality (display only):** `(exp(slope*252) - 1) * 100 * R^2`, where slope and R^2 come from a straight-line fit
+  to the last 90 days of log price. High = fast and steady climb; near zero or negative = flat, choppy or falling.
 - **Strength score (0 to 100), sorting only:** `0.5*RS_rank + 0.25*(Trend/4*100) + 0.25*(Participation/3*100)`.
 - Also reuses the Stabilizing-after-oversold rules (section 2.4a) and the liquidity filter.
 
@@ -171,8 +176,8 @@ so it needs the whole list scored in one run. Run schedule: 4:10 PM IST, Monday 
 |---|---|---|---|
 | 1 | Low liquidity | Fails the liquidity filter (100,000 shares or Rs 1 crore a day, 20-day average) | Listed separately, no state |
 | 2 | Extended | Trend >= 3 and stretched | Don't chase |
-| 3 | Strong | Trend >= 3, RS_rank >= 60, vs Nifty > 0 | Add on a pullback |
-| 4 | Building | (Stabilizing, or RS_change >= +10 with Trend <= 2) and Participation >= 2 and RS_rank >= 30 | Buy in tranches |
+| 3 | Strong | Trend >= 3, RS_rank >= 60, vs Nifty > 0, 6-month return > 0 | Add on a pullback |
+| 4 | Building | (Stabilizing, or RS_change >= +10 with Trend <= 2) and Participation >= 2 and RS_rank >= 30 and 1-month return > 0 | Buy in tranches |
 | 5 | Fading | Close below SMA50 and RS_change <= -10 | Avoid / exit |
 | 6 | Dormant | RS_rank < 40 and Trend <= 1 | Watch |
 | 7 | Neutral | Anything else (catch-all) | Watch |
@@ -190,7 +195,7 @@ The same data-check banner and `[CHECK DATA]` subject prefix as the other tracke
 
 **Tuning:** all thresholds are named constants at the top of `momentum_tracker.py`. They are reasoned starting
 points, not backtested. Likeliest to need tuning after a few weeks of emails: `STRONG_MIN_RANK`,
-`BUILDING_MIN_RS_CHANGE` / `FADING_MAX_RS_CHANGE`, `EXTENDED_ATR_MULT`. Needs at least 280 rows of history per stock.
+`BUILDING_MIN_RS_CHANGE` / `FADING_MAX_RS_CHANGE`, `EXTENDED_ATR_MULT`, `BUILDING_MIN_RET_1M`, `STRONG_MIN_RET_6M`. Needs at least 280 rows of history per stock.
 
 **Limits:** price and volume only (no earnings or fundamentals); OBV is crude; ranks are relative to the list you
 track, so a weak list gives flattering ranks; states are a sorting aid, not a trading signal.
