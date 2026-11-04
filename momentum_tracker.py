@@ -52,6 +52,21 @@ BUILDING_MIN_PARTICIPATION = 2  # participation points (0-3) needed for Building
 BUILDING_MIN_RANK = 30          # Building also needs at least this RS rank (screens out weak stocks that merely bounce)
 DORMANT_MAX_TREND = 1
 
+# --- Emerging (fast, early-warning tier; shorter windows than Building) ---
+EMERGING_RS_LOOKBACK = 10       # rank change measured over this many days
+EMERGING_MIN_RS_CHANGE = 10     # rank must be up at least this many points over that window
+EMERGING_MIN_RANK = 30          # still screens out the weakest stocks
+EMERGING_RET_DAYS = 10          # own return window that must be positive
+EMERGING_SMA_DAYS = 20          # price must be above this average
+EMERGING_OBV_DAYS = 10          # fast participation: OBV window
+EMERGING_UPDOWN_DAYS = 10       # fast participation: up/down volume window
+EMERGING_VOL_SURGE = 1.2        # fast participation: 5-day avg volume vs 50-day avg
+EMERGING_MIN_PARTICIPATION = 2  # fast participation points (0-3) needed
+
+# --- Shared window settings (exposed so the backtest can try faster variants) ---
+TREND_SLOPE_DAYS = 10           # SMA50 must be higher than this many days ago (trend point 4)
+RET_1M_DAYS = 21                # window for the "1-month" return used by the Building rule
+
 # --- Absolute (own-return) momentum and trend quality ---
 BUILDING_MIN_RET_1M = 0.0       # Building: stock's own 1-month return must be above this (%)
 STRONG_MIN_RET_6M = 0.0         # Strong: stock's own 6-month return must be above this (%)
@@ -85,8 +100,9 @@ MIN_AVG_TRADED_VALUE = 1e7      # INR per day (1e7 = Rs 1 crore)
 # --- Score weights (used only to sort within a state) ---
 W_RANK, W_TREND, W_PART = 0.5, 0.25, 0.25
 
-STATE_ORDER = ["Building", "Strong", "Extended", "Fading", "Neutral", "Dormant"]
+STATE_ORDER = ["Emerging", "Building", "Strong", "Extended", "Fading", "Neutral", "Dormant"]
 ACTIONS = {
+    "Emerging": "Research now; starter only",
     "Building": "Buy in tranches",
     "Strong": "Add on a pullback",
     "Extended": "Don't chase",
@@ -97,6 +113,7 @@ ACTIONS = {
 
 # Legend shown near the top of the email: state, what it means, what to do.
 STATE_GUIDE = [
+    ("Emerging", "Early turn on fast (10-day) signals: rank jumping, price above its 20-day average, volume surge. Less proven than Building.", "Research now; starter only"),
     ("Building", "Turning up from a base, relative strength improving, volume support, and its own 1-month return positive.", "Buy in tranches"),
     ("Strong", "Confirmed uptrend, high relative strength, beating Nifty, and its own 6-month return positive.", "Add on a pullback"),
     ("Extended", "Strong but stretched far above its averages.", "Don't chase"),
@@ -224,7 +241,7 @@ def stock_metrics(df, nifty_return):
         c_now > sma50_now,
         sma50_now > sma200_now,
         c_now > sma200_now,
-        sma50_now > float(sma50.iloc[-11]),
+        sma50_now > float(sma50.iloc[-1 - TREND_SLOPE_DAYS]),
     ]))
 
     # ---- Stretch ----
@@ -264,9 +281,21 @@ def stock_metrics(df, nifty_return):
     liquid = bool(avg_volume >= MIN_AVG_VOLUME and avg_value >= MIN_AVG_TRADED_VALUE)
 
     # ---- Absolute momentum: the stock's own returns, independent of the other stocks ----
-    ret_1m = pct_return(close, 21)
+    ret_1m = pct_return(close, RET_1M_DAYS)
     ret_3m = pct_return(close, 63)
     ret_6m = pct_return(close, 126)
+
+    # ---- Emerging: fast-window inputs ----
+    sma20 = close.rolling(EMERGING_SMA_DAYS).mean()
+    ret_fast = pct_return(close, EMERGING_RET_DAYS)
+    f_obv = bool(obv.iloc[-1] > obv.tail(EMERGING_OBV_DAYS).mean() and obv.iloc[-1] > obv.iloc[-1 - EMERGING_OBV_DAYS])
+    chg_f = close.diff().tail(EMERGING_UPDOWN_DAYS)
+    vol_f = volume.tail(EMERGING_UPDOWN_DAYS)
+    up_f, down_f = float(vol_f[chg_f > 0].sum()), float(vol_f[chg_f < 0].sum())
+    f_updown = bool(up_f > 0 and (down_f == 0 or up_f / down_f > UPDOWN_MIN_RATIO))
+    f_surge = bool(volume.tail(5).mean() >= EMERGING_VOL_SURGE * volume.tail(50).mean())
+    participation_fast = int(f_obv) + int(f_updown) + int(f_surge)
+    above_sma20 = bool(c_now > float(sma20.iloc[-1]))
 
     # ---- Trend quality (slope x R^2): annualised slope of log price, scaled by how straight the line is ----
     y = np.log(close.tail(TQ_DAYS).values.astype(float))
@@ -284,6 +313,10 @@ def stock_metrics(df, nifty_return):
         "rsi": round(rsi_now, 1),
         "rs_raw": rs_raw(close),
         "rs_raw_prev": rs_raw(close, end=-1 - RS_CHANGE_LOOKBACK),
+        "rs_raw_prev_fast": rs_raw(close, end=-1 - EMERGING_RS_LOOKBACK),
+        "ret_fast": round(float(ret_fast), 2),
+        "participation_fast": participation_fast,
+        "above_sma20": above_sma20,
         "vs_nifty": round(pct_return(close, NIFTY_LOOKBACK) - nifty_return, 2),
         "trend_pts": trend_pts,
         "participation": participation,
@@ -313,6 +346,11 @@ def assign_state(r):
             and r["participation"] >= BUILDING_MIN_PARTICIPATION and rank >= BUILDING_MIN_RANK
             and r["ret_1m"] > BUILDING_MIN_RET_1M):
         return "Building"
+    # Emerging sits after Building (stronger evidence wins) but before Fading: it is the early-turn tier.
+    if (r["rs_change_fast"] >= EMERGING_MIN_RS_CHANGE and rank >= EMERGING_MIN_RANK
+            and r["above_sma20"] and r["ret_fast"] > 0
+            and r["participation_fast"] >= EMERGING_MIN_PARTICIPATION):
+        return "Emerging"
     if r["pct_above_sma50"] < 0 and chg <= FADING_MAX_RS_CHANGE:
         return "Fading"
     if rank < DORMANT_MAX_RANK and trend <= DORMANT_MAX_TREND:
@@ -325,6 +363,8 @@ def build_universe(results_df):
     df["rs_rank"] = df["rs_raw"].rank(pct=True) * 100
     df["rs_rank_prev"] = df["rs_raw_prev"].rank(pct=True) * 100
     df["rs_change"] = df["rs_rank"] - df["rs_rank_prev"]
+    df["rs_rank_prev_fast"] = df["rs_raw_prev_fast"].rank(pct=True) * 100
+    df["rs_change_fast"] = df["rs_rank"] - df["rs_rank_prev_fast"]
     df["score"] = (
         W_RANK * df["rs_rank"] +
         W_TREND * (df["trend_pts"] / 4 * 100) +
@@ -382,15 +422,15 @@ def participation_label(p):
 def build_email_html(df, nifty_return, data_as_of="", warns=None):
     counts = df["state"].value_counts()
 
-    def rows(sub, building=False):
-        # Building: fastest improvers first (RS change), then strength score.
+    def rows(sub, state=None):
+        # Building: fastest improvers first (21-day RS change). Emerging: fastest (10-day RS change).
         # All other states: strength score, highest first.
-        sort_cols = ["rs_change", "score"] if building else ["score"]
+        sort_cols = {"Building": ["rs_change", "score"], "Emerging": ["rs_change_fast", "score"]}.get(state, ["score"])
         out = ""
         for _, r in sub.sort_values(sort_cols, ascending=False).iterrows():
             out += (
                 f"<tr><td>{r['ticker']}</td><td>{r['score']:.0f}</td>"
-                f"<td>{r['rs_rank']:.0f}</td><td>{r['rs_change']:+.0f}</td>"
+                f"<td>{r['rs_rank']:.0f}</td><td>{r['rs_change']:+.0f}</td><td>{r['rs_change_fast']:+.0f}</td>"
                 f"<td>{r['vs_nifty']:+.1f}%</td><td>{r['ret_3m']:+.1f}%</td>"
                 f"<td>{int(r['trend_pts'])}/4</td><td>{r['trend_quality']:.0f}</td>"
                 f"<td>{participation_label(r['participation'])}</td>"
@@ -400,12 +440,13 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
         return out
 
     header = (
-        "<tr><th>Ticker</th><th>Strength score</th><th>RS rank</th><th>RS chg (21d)</th>"
+        "<tr><th>Ticker</th><th>Strength score</th><th>RS rank</th><th>RS chg (21d)</th><th>RS chg (10d)</th>"
         "<th>vs Nifty (3M)</th><th>3M return</th><th>Trend</th><th>Trend quality</th><th>Participation</th>"
         "<th>Stretch (ATR)</th><th>RSI</th><th>Action</th></tr>"
     )
 
     blurbs = {
+        "Emerging": "Earliest tier. Fast 10-day signals say a turn may be starting: rank jumping, price above its 20-day average, volume surging. Less proven than Building, so research it now and use a starter position at most. Sorted by 10-day RS change.",
         "Building": "Turning up from a base with rank improving and volume support, and not among the weakest stocks. The entry zone: consider buying in tranches. Sorted by RS change (fastest improvers first); a low strength score is normal here, since these stocks are early in their recovery.",
         "Strong": "Confirmed uptrend, high relative strength, beating Nifty. Add on a pullback toward the SMA50 rather than chasing.",
         "Extended": "Strong but stretched far above its averages. Don't chase; tighten stops if you hold.",
@@ -413,9 +454,9 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
     }
 
     sections = ""
-    for state in ["Building", "Strong", "Extended", "Fading"]:
+    for state in ["Emerging", "Building", "Strong", "Extended", "Fading"]:
         sub = df[df.state == state]
-        table_rows = rows(sub, building=(state == "Building"))
+        table_rows = rows(sub, state)
         sections += (
             f"<h3>{state} ({len(sub)})</h3><p style='color:#666;font-size:12px;'>{blurbs[state]}</p>"
             f"<table border='1' cellpadding='5' cellspacing='0'>{header}{table_rows}</table>"
@@ -445,7 +486,7 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
     <p>{len(df)} stocks scanned. {summary}.</p>
     <p style="color:#666;font-size:12px;">
     RS rank = percentile of a blended 1/3/6/12-month return among all stocks scanned (100 = strongest).
-    RS chg = rank change over 21 trading days. Trend = 4 checks on SMA50/SMA200. Participation = 3 volume/OBV checks.
+    RS chg (21d / 10d) = rank change over 21 / 10 trading days. Trend = 4 checks on SMA50/SMA200. Participation = 3 volume/OBV checks.
     Stretch = distance above the SMA50 in ATRs (Extended at {EXTENDED_ATR_MULT:g}x or more). 3M return = the stock's own 3-month return (not relative to anything). Trend quality = annualised slope of the last {TQ_DAYS} days of log price x R-squared: high = a fast, steady climb, near zero or negative = flat, choppy or falling.
     Strength score is explained below.
     Price and volume signals only; no earnings or fundamentals. Not investment advice.</p>
