@@ -172,13 +172,15 @@ so it needs the whole list scored in one run. Run schedule: 4:10 PM IST, Monday 
 | 1 | Low liquidity | Fails the liquidity filter (100,000 shares or Rs 1 crore a day, 20-day average) | Listed separately, no state |
 | 2 | Extended | Trend >= 3 and stretched | Don't chase |
 | 3 | Strong | Trend >= 3, RS_rank >= 60, vs Nifty > 0 | Add on a pullback |
-| 4 | Building | (Stabilizing, or RS_change >= +10 with Trend <= 2) and Participation >= 1 | Buy in tranches |
+| 4 | Building | (Stabilizing, or RS_change >= +10 with Trend <= 2) and Participation >= 2 and RS_rank >= 30 | Buy in tranches |
 | 5 | Fading | Close below SMA50 and RS_change <= -10 | Avoid / exit |
 | 6 | Dormant | RS_rank < 40 and Trend <= 1 | Watch |
 | 7 | Neutral | Anything else (catch-all) | Watch |
 
-**Email:** header with Nifty 3M return and a count per state; then one table each for Building, Strong, Extended
-and Fading (sorted by score); then a compact Neutral/Dormant table; then the low-liquidity tickers.
+**Email:** header with Nifty 3M return and a count per state; a "What each state means and what to do" legend
+(state, meaning, action); then one table each for Building, Strong, Extended
+and Fading (sorted by score); then a compact Neutral/Dormant table (with an Action column); then the low-liquidity
+tickers, followed by a plain-language definition of low liquidity.
 Columns: Ticker, Score, RS rank, RS chg (21d), vs Nifty (3M), Trend, Participation, Stretch (ATR), RSI, Action.
 The same data-check banner and `[CHECK DATA]` subject prefix as the other trackers apply.
 
