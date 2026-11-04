@@ -162,7 +162,7 @@ so it needs the whole list scored in one run. Run schedule: 4:10 PM IST, Monday 
   Labels: Confirming (3), Mixed (1 or 2), Not confirming (0).
 - **Stretch:** `ext_ATR = (close - SMA50) / ATR14` (ATR = average true range, a measure of typical daily movement,
   so a calm bank and a volatile small-cap are comparable). Stretched if `ext_ATR >= 6`, or RSI >= 70 and more than 10% above the SMA50.
-- **Score (0 to 100), sorting only:** `0.5*RS_rank + 0.25*(Trend/4*100) + 0.25*(Participation/3*100)`.
+- **Strength score (0 to 100), sorting only:** `0.5*RS_rank + 0.25*(Trend/4*100) + 0.25*(Participation/3*100)`.
 - Also reuses the Stabilizing-after-oversold rules (section 2.4a) and the liquidity filter.
 
 **State rules, checked in this order**
@@ -176,6 +176,10 @@ so it needs the whole list scored in one run. Run schedule: 4:10 PM IST, Monday 
 | 5 | Fading | Close below SMA50 and RS_change <= -10 | Avoid / exit |
 | 6 | Dormant | RS_rank < 40 and Trend <= 1 | Watch |
 | 7 | Neutral | Anything else (catch-all) | Watch |
+
+**Sorting:** every table is sorted by strength score (highest first) except Building, which is sorted by RS change
+(fastest improvers first), then strength score. The strength score is a level (how strong the stock is now), so a stock
+turning up from a weak base can have a low score and still be Building. The email prints the formula.
 
 **Email:** header with Nifty 3M return and a count per state; a "What each state means and what to do" legend
 (state, meaning, action); then one table each for Building, Strong, Extended
