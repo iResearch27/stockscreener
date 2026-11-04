@@ -24,7 +24,7 @@ and the known limitations, so the logic can be rebuilt or tuned later.
 | Turnaround screener (`screener.py`) | Catch stocks turning up from a downtrend, ideally before the obvious crossovers | GitHub Actions | Email table |
 | Confirmed Uptrend tracker (`uptrend_tracker.py`) | Find stocks already in a sustained, strong uptrend | GitHub Actions | Email table |
 | Momentum tracker (`momentum_tracker.py`) | Give every stock one momentum state (Emerging, Building, Strong, Extended, Fading, Dormant, Neutral) with a suggested action; helps discovery and entry timing | GitHub Actions | Email grouped by state |
-| Momentum backtest (`backtest_momentum.py`) | Replays the momentum states over about 5 years to measure what each state went on to do and how early it appears at real turning points | GitHub Actions (manual only) | Email with tables |
+| Momentum backtests (`backtest_momentum.py`, `backtest_momentum_2.py`) | Replays the momentum states over about 5 years to measure what each state went on to do and how early it appears at real turning points | GitHub Actions (manual only) | Email with tables |
 | Pine Script dashboard (TradingView) | Same turnaround logic as a live on-chart table, up to 40 stocks | TradingView | Table + optional alert |
 | Keep Repo Active (`keepalive.yml`) | Stops GitHub pausing scheduled workflows after 60 days of no commits | GitHub Actions | A monthly commit |
 
@@ -232,6 +232,25 @@ Environment variables `BT_STEP` and `BT_MAX_TICKERS` allow a quicker, smaller ru
 
 ---
 
+### 3a.2 Momentum backtest #2: which rules have an edge? (added Nov 2026)
+
+`backtest_momentum_2.py` (workflow `backtest_momentum_2.yml`, manual, about 10 to 15 minutes) follows up the first backtest, which found that the
+strength states (Strong, Extended) beat the all-stocks baseline while the recovery states (Building, Emerging) did not. It replays the states once
+with the live functions, stores the metrics, and evaluates many candidate rules on them:
+
+- **Edge** = average over dates of (rule's average forward return minus all-stocks average on the same date), at 21 and 63 trading days. This removes market-wide moves.
+- **t-statistic** (rough) with a correction for overlapping observations; above about +2 or below -2 suggests the edge is unlikely to be luck.
+- **Risk:** average worst fall from entry within the next 63 days, and the share of observations where that fall exceeded 15%.
+- **Honesty checks:** results split into a first half and a second half ("Holds in both halves?" is Yes only if the edge is positive at both horizons in both halves),
+  and into up markets and down markets (Nifty's own 3-month return positive or not).
+- **Candidates:** current states and flags (including Stabilizing and Pullback to SMA50), six tighter versions of Building, and simple alternatives
+  (a Reclaim rule, Strong near the SMA50, top 20% by RS rank, and top 20% by RS rank beating Nifty with a positive 6-month return).
+
+Limits as for the first backtest, plus: testing many rules raises the chance that one looks good by luck, so prefer rules that hold in both halves, have a clearly
+positive t, and make sense on their own. Do not tune the live tracker on this report alone.
+
+---
+
 ## 4. TradingView Pine Script dashboard
 
 Pine Script v6 indicator ("Multi-Stock Turnaround Screener") using the same 12 conditions and the
@@ -265,6 +284,7 @@ best-effort and can run a few minutes late.
 | `uptrend_tracker.yml` | Uptrend tracker, Mon-Fri 4:00 PM IST | `30 10 * * 1-5` |
 | `momentum_tracker.yml` | Momentum tracker, Mon-Fri 4:10 PM IST | `40 10 * * 1-5` |
 | `backtest_momentum.yml` | Momentum backtest, manual only | `workflow_dispatch` |
+| `backtest_momentum_2.yml` | Momentum backtest #2 (rule edge), manual only | `workflow_dispatch` |
 | `keepalive.yml` | Monthly commit, 1st of each month 3:00 AM UTC | `0 3 1 * *` |
 
 All workflows can also be run by hand from the Actions tab (**Run workflow**).
@@ -298,6 +318,7 @@ stockscreener/
   screener.py               turnaround screener
   momentum_tracker.py       momentum tracker (reads uptrend_watchlist.txt)
   backtest_momentum.py      momentum backtest (manual run)
+  backtest_momentum_2.py    backtest #2: edge, risk, halves, regimes (manual run)
   stocks.txt                watchlist for the turnaround screener
   uptrend_tracker.py        confirmed uptrend tracker
   uptrend_watchlist.txt     watchlist for the uptrend tracker
@@ -309,6 +330,7 @@ stockscreener/
     uptrend_tracker.yml
     momentum_tracker.yml
     backtest_momentum.yml
+    backtest_momentum_2.yml
     keepalive.yml
 ```
 
