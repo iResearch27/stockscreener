@@ -415,9 +415,10 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
     sections = ""
     for state in ["Building", "Strong", "Extended", "Fading"]:
         sub = df[df.state == state]
+        table_rows = rows(sub, building=(state == "Building"))
         sections += (
             f"<h3>{state} ({len(sub)})</h3><p style='color:#666;font-size:12px;'>{blurbs[state]}</p>"
-            f"<table border='1' cellpadding='5' cellspacing='0'>{header}{rows(sub, building=(state == "Building"))}</table>"
+            f"<table border='1' cellpadding='5' cellspacing='0'>{header}{table_rows}</table>"
         )
 
     rest = df[df.state.isin(["Neutral", "Dormant"])].sort_values("score", ascending=False)
