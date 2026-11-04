@@ -23,7 +23,8 @@ and the known limitations, so the logic can be rebuilt or tuned later.
 |---|---|---|---|
 | Turnaround screener (`screener.py`) | Catch stocks turning up from a downtrend, ideally before the obvious crossovers | GitHub Actions | Email table |
 | Confirmed Uptrend tracker (`uptrend_tracker.py`) | Find stocks already in a sustained, strong uptrend | GitHub Actions | Email table |
-| Momentum tracker (`momentum_tracker.py`) | Give every stock one momentum state (Building, Strong, Extended, Fading, Dormant, Neutral) with a suggested action; helps discovery and entry timing | GitHub Actions | Email grouped by state |
+| Momentum tracker (`momentum_tracker.py`) | Give every stock one momentum state (Emerging, Building, Strong, Extended, Fading, Dormant, Neutral) with a suggested action; helps discovery and entry timing | GitHub Actions | Email grouped by state |
+| Momentum backtest (`backtest_momentum.py`) | Replays the momentum states over about 5 years to measure what each state went on to do and how early it appears at real turning points | GitHub Actions (manual only) | Email with tables |
 | Pine Script dashboard (TradingView) | Same turnaround logic as a live on-chart table, up to 40 stocks | TradingView | Table + optional alert |
 | Keep Repo Active (`keepalive.yml`) | Stops GitHub pausing scheduled workflows after 60 days of no commits | GitHub Actions | A monthly commit |
 
@@ -178,9 +179,15 @@ so it needs the whole list scored in one run. Run schedule: 4:10 PM IST, Monday 
 | 2 | Extended | Trend >= 3 and stretched | Don't chase |
 | 3 | Strong | Trend >= 3, RS_rank >= 60, vs Nifty > 0, 6-month return > 0 | Add on a pullback |
 | 4 | Building | (Stabilizing, or RS_change >= +10 with Trend <= 2) and Participation >= 2 and RS_rank >= 30 and 1-month return > 0 | Buy in tranches |
-| 5 | Fading | Close below SMA50 and RS_change <= -10 | Avoid / exit |
-| 6 | Dormant | RS_rank < 40 and Trend <= 1 | Watch |
-| 7 | Neutral | Anything else (catch-all) | Watch |
+| 5 | Emerging | RS rank up >= 10 points over **10** days, RS_rank >= 30, close above SMA20, own 10-day return > 0, fast participation >= 2 of 3 | Research now; starter only |
+| 6 | Fading | Close below SMA50 and RS_change <= -10 | Avoid / exit |
+| 7 | Dormant | RS_rank < 40 and Trend <= 1 | Watch |
+| 8 | Neutral | Anything else (catch-all) | Watch |
+
+**Emerging (added Nov 2026)** is the early-warning tier. It uses shorter windows than Building so it appears sooner, at the cost of more false starts.
+It is checked after Building (stronger evidence wins) and before Fading, so a stock that turns up fast is not held in Fading by the slower 21-day measure.
+Fast participation (0 to 3, one each): OBV above its 10-day average and above its value 10 days ago; up/down volume ratio over 10 days > 1.1;
+5-day average volume >= 1.2 x the 50-day average (a volume surge). Treat Emerging as "research now, starter position at most"; add size only when it reaches Building or Strong.
 
 **Sorting:** every table is sorted by strength score (highest first) except Building, which is sorted by RS change
 (fastest improvers first), then strength score. The strength score is a level (how strong the stock is now), so a stock
@@ -195,10 +202,33 @@ The same data-check banner and `[CHECK DATA]` subject prefix as the other tracke
 
 **Tuning:** all thresholds are named constants at the top of `momentum_tracker.py`. They are reasoned starting
 points, not backtested. Likeliest to need tuning after a few weeks of emails: `STRONG_MIN_RANK`,
-`BUILDING_MIN_RS_CHANGE` / `FADING_MAX_RS_CHANGE`, `EXTENDED_ATR_MULT`, `BUILDING_MIN_RET_1M`, `STRONG_MIN_RET_6M`. Needs at least 280 rows of history per stock.
+`BUILDING_MIN_RS_CHANGE` / `FADING_MAX_RS_CHANGE`, `EXTENDED_ATR_MULT`, `BUILDING_MIN_RET_1M`, `STRONG_MIN_RET_6M`, and the `EMERGING_*` constants (rank-change window, minimum rank,
+volume-surge multiple). Needs at least 280 rows of history per stock.
 
 **Limits:** price and volume only (no earnings or fundamentals); OBV is crude; ranks are relative to the list you
 track, so a weak list gives flattering ranks; states are a sorting aid, not a trading signal.
+
+---
+
+### 3a.1 Momentum backtest (added Nov 2026)
+
+`backtest_momentum.py` replays the momentum states over about 5 years for the stocks in `uptrend_watchlist.txt`, calling the same
+functions as the live tracker so the rules cannot drift apart. Run it manually: Actions -> Momentum Backtest -> Run workflow
+(`backtest_momentum.yml`, about 10 to 20 minutes). Results arrive by email. It runs two variants side by side: the current windows,
+and a faster-window variant (10-day rank change, 10-day volume windows, 5-day SMA50 slope, 10-day "1-month" return, more weight on recent returns).
+
+**Output 1, what each state went on to do:** observations of each state (sampled every 5 trading days) with average and median 21-day
+forward return, hit rate (share positive), excess return versus Nifty at 21 and 63 days, compared with an all-stocks baseline.
+A state is only useful if it beats the baseline.
+
+**Output 2, how early each state shows up:** a turning point is the lowest close within +/-40 trading days that was followed by a rally of
+15% or more within 63 days. For Emerging, Building and Strong (and the first of the three) it reports the share of turning points caught,
+the median days from the low to the first appearance, and the median share of the low-to-peak rally already gone by then.
+
+**Limits:** the watchlist is today's list, so it has survivorship bias (it favors stocks that survived and did well); neighboring observations
+overlap, so the effective sample is smaller than the count suggests; no costs or slippage; lag is only accurate to about the sampling step;
+the thresholds were not tuned on this data, but tuning them from this report will make results look better than they will be live.
+Environment variables `BT_STEP` and `BT_MAX_TICKERS` allow a quicker, smaller run.
 
 ---
 
@@ -234,6 +264,7 @@ best-effort and can run a few minutes late.
 | `daily_screener.yml` | Turnaround screener, Mon-Fri 4:00 PM IST | `30 10 * * 1-5` |
 | `uptrend_tracker.yml` | Uptrend tracker, Mon-Fri 4:00 PM IST | `30 10 * * 1-5` |
 | `momentum_tracker.yml` | Momentum tracker, Mon-Fri 4:10 PM IST | `40 10 * * 1-5` |
+| `backtest_momentum.yml` | Momentum backtest, manual only | `workflow_dispatch` |
 | `keepalive.yml` | Monthly commit, 1st of each month 3:00 AM UTC | `0 3 1 * *` |
 
 All workflows can also be run by hand from the Actions tab (**Run workflow**).
@@ -266,6 +297,7 @@ for private repos. Each run takes a few minutes, so usage stays far below that.
 stockscreener/
   screener.py               turnaround screener
   momentum_tracker.py       momentum tracker (reads uptrend_watchlist.txt)
+  backtest_momentum.py      momentum backtest (manual run)
   stocks.txt                watchlist for the turnaround screener
   uptrend_tracker.py        confirmed uptrend tracker
   uptrend_watchlist.txt     watchlist for the uptrend tracker
@@ -276,6 +308,7 @@ stockscreener/
     daily_screener.yml
     uptrend_tracker.yml
     momentum_tracker.yml
+    backtest_momentum.yml
     keepalive.yml
 ```
 
