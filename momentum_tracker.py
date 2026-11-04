@@ -48,7 +48,8 @@ BUILDING_MIN_RS_CHANGE = 10     # Building: rank up at least this many points in
 FADING_MAX_RS_CHANGE = -10      # Fading: rank down at least this many points in 21 days
 STRONG_MIN_TREND = 3            # trend points (0-4) needed for Strong / Extended
 BUILDING_MAX_TREND = 2          # the RS-improvement route to Building needs a still-weak trend
-BUILDING_MIN_PARTICIPATION = 1  # participation points (0-3) needed for Building
+BUILDING_MIN_PARTICIPATION = 2  # participation points (0-3) needed for Building
+BUILDING_MIN_RANK = 30          # Building also needs at least this RS rank (screens out weak stocks that merely bounce)
 DORMANT_MAX_TREND = 1
 
 # --- Stretch ---
@@ -88,6 +89,17 @@ ACTIONS = {
     "Neutral": "Watch",
     "Dormant": "Watch",
 }
+
+# Legend shown near the top of the email: state, what it means, what to do.
+STATE_GUIDE = [
+    ("Building", "Turning up from a base, relative strength improving, some volume support.", "Buy in tranches"),
+    ("Strong", "Confirmed uptrend, high relative strength, beating Nifty.", "Add on a pullback"),
+    ("Extended", "Strong but stretched far above its averages.", "Don't chase"),
+    ("Fading", "Below the SMA50 and relative strength falling.", "Avoid / exit"),
+    ("Neutral", "Fits none of the other states.", "Watch"),
+    ("Dormant", "Weak trend, low relative strength, no sign of improvement.", "Watch"),
+    ("Low liquidity", "Too thinly traded for the signals to be reliable.", "Not judged"),
+]
 
 
 # ============================================================
@@ -276,7 +288,7 @@ def assign_state(r):
     if trend >= STRONG_MIN_TREND and rank >= STRONG_MIN_RANK and r["vs_nifty"] > 0:
         return "Strong"
     if ((r["stabilizing"] or (chg >= BUILDING_MIN_RS_CHANGE and trend <= BUILDING_MAX_TREND))
-            and r["participation"] >= BUILDING_MIN_PARTICIPATION):
+            and r["participation"] >= BUILDING_MIN_PARTICIPATION and rank >= BUILDING_MIN_RANK):
         return "Building"
     if r["pct_above_sma50"] < 0 and chg <= FADING_MAX_RS_CHANGE:
         return "Fading"
@@ -367,7 +379,7 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
     )
 
     blurbs = {
-        "Building": "Turning up from a base with rank improving and some volume support. The entry zone: consider buying in tranches.",
+        "Building": "Turning up from a base with rank improving and volume support, and not among the weakest stocks. The entry zone: consider buying in tranches.",
         "Strong": "Confirmed uptrend, high relative strength, beating Nifty. Add on a pullback toward the SMA50 rather than chasing.",
         "Extended": "Strong but stretched far above its averages. Don't chase; tighten stops if you hold.",
         "Fading": "Below the SMA50 with relative strength falling. Avoid new money; review if you hold.",
@@ -384,11 +396,16 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
     rest = df[df.state.isin(["Neutral", "Dormant"])].sort_values("score", ascending=False)
     rest_rows = "".join(
         f"<tr><td>{r['ticker']}</td><td>{r['state']}</td><td>{r['score']:.0f}</td>"
-        f"<td>{r['rs_rank']:.0f}</td><td>{r['vs_nifty']:+.1f}%</td><td>{int(r['trend_pts'])}/4</td></tr>"
+        f"<td>{r['rs_rank']:.0f}</td><td>{r['vs_nifty']:+.1f}%</td><td>{int(r['trend_pts'])}/4</td>"
+        f"<td>{r['action']}</td></tr>"
         for _, r in rest.iterrows()
     )
     low_liq = ", ".join(sorted(df[df.state == "Low liquidity"]["ticker"])) or "none"
 
+    guide_rows = "".join(
+        f"<tr><td><b>{name}</b></td><td>{meaning}</td><td>{action}</td></tr>"
+        for name, meaning, action in STATE_GUIDE
+    )
     summary = ", ".join(f"{s}: {int(counts.get(s, 0))}" for s in STATE_ORDER + ["Low liquidity"])
 
     return f"""
@@ -404,15 +421,24 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
     Stretch = distance above the SMA50 in ATRs (Extended at {EXTENDED_ATR_MULT:g}x or more). Score sorts stocks within a state only.
     Price and volume signals only; no earnings or fundamentals. Not investment advice.</p>
 
+    <h3>What each state means and what to do</h3>
+    <table border="1" cellpadding="5" cellspacing="0">
+    <tr><th>State</th><th>Meaning</th><th>Action</th></tr>{guide_rows}</table>
+
     {sections}
 
     <h3>Neutral and Dormant ({len(rest)})</h3>
     <table border="1" cellpadding="4" cellspacing="0">
-    <tr><th>Ticker</th><th>State</th><th>Score</th><th>RS rank</th><th>vs Nifty (3M)</th><th>Trend</th></tr>
+    <tr><th>Ticker</th><th>State</th><th>Score</th><th>RS rank</th><th>vs Nifty (3M)</th><th>Trend</th><th>Action</th></tr>
     {rest_rows}</table>
 
     <h3>Low liquidity (no state given)</h3>
     <p style="font-size:12px;">{low_liq}</p>
+    <p style="color:#666;font-size:12px;">
+    <b>Low liquidity</b> means the stock's 20-day average trading volume is under {MIN_AVG_VOLUME:,} shares, or its
+    average traded value (price x volume) is under Rs {MIN_AVG_TRADED_VALUE / 1e7:g} crore a day. Thinly traded stocks have
+    noisy prices and unreliable volume signals, so they are not given a momentum state or an action,
+    and are not flagged in any table. Check their charts manually if you follow them.</p>
     </body></html>
     """
 
