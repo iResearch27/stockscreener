@@ -52,6 +52,11 @@ BUILDING_MIN_PARTICIPATION = 2  # participation points (0-3) needed for Building
 BUILDING_MIN_RANK = 30          # Building also needs at least this RS rank (screens out weak stocks that merely bounce)
 DORMANT_MAX_TREND = 1
 
+# --- Absolute (own-return) momentum and trend quality ---
+BUILDING_MIN_RET_1M = 0.0       # Building: stock's own 1-month return must be above this (%)
+STRONG_MIN_RET_6M = 0.0         # Strong: stock's own 6-month return must be above this (%)
+TQ_DAYS = 90                    # window for trend quality (slope x R^2 of log price)
+
 # --- Stretch ---
 ATR_DAYS = 14
 EXTENDED_ATR_MULT = 6.0         # Extended if (close - SMA50) / ATR >= this
@@ -92,8 +97,8 @@ ACTIONS = {
 
 # Legend shown near the top of the email: state, what it means, what to do.
 STATE_GUIDE = [
-    ("Building", "Turning up from a base, relative strength improving, some volume support.", "Buy in tranches"),
-    ("Strong", "Confirmed uptrend, high relative strength, beating Nifty.", "Add on a pullback"),
+    ("Building", "Turning up from a base, relative strength improving, volume support, and its own 1-month return positive.", "Buy in tranches"),
+    ("Strong", "Confirmed uptrend, high relative strength, beating Nifty, and its own 6-month return positive.", "Add on a pullback"),
     ("Extended", "Strong but stretched far above its averages.", "Don't chase"),
     ("Fading", "Below the SMA50 and relative strength falling.", "Avoid / exit"),
     ("Neutral", "Fits none of the other states.", "Watch"),
@@ -258,8 +263,24 @@ def stock_metrics(df, nifty_return):
     avg_value = float((close * volume).tail(LIQ_LOOKBACK).mean())
     liquid = bool(avg_volume >= MIN_AVG_VOLUME and avg_value >= MIN_AVG_TRADED_VALUE)
 
+    # ---- Absolute momentum: the stock's own returns, independent of the other stocks ----
+    ret_1m = pct_return(close, 21)
+    ret_3m = pct_return(close, 63)
+    ret_6m = pct_return(close, 126)
+
+    # ---- Trend quality (slope x R^2): annualised slope of log price, scaled by how straight the line is ----
+    y = np.log(close.tail(TQ_DAYS).values.astype(float))
+    x = np.arange(len(y))
+    slope = np.polyfit(x, y, 1)[0]
+    r2 = float(np.corrcoef(x, y)[0, 1] ** 2)
+    trend_quality = (np.exp(slope * 252) - 1) * 100 * r2
+
     return {
         "price": round(c_now, 2),
+        "ret_1m": round(float(ret_1m), 2),
+        "ret_3m": round(float(ret_3m), 2),
+        "ret_6m": round(float(ret_6m), 2),
+        "trend_quality": round(float(trend_quality), 1),
         "rsi": round(rsi_now, 1),
         "rs_raw": rs_raw(close),
         "rs_raw_prev": rs_raw(close, end=-1 - RS_CHANGE_LOOKBACK),
@@ -285,10 +306,12 @@ def assign_state(r):
 
     if trend >= STRONG_MIN_TREND and r["stretched"]:
         return "Extended"
-    if trend >= STRONG_MIN_TREND and rank >= STRONG_MIN_RANK and r["vs_nifty"] > 0:
+    if (trend >= STRONG_MIN_TREND and rank >= STRONG_MIN_RANK and r["vs_nifty"] > 0
+            and r["ret_6m"] > STRONG_MIN_RET_6M):
         return "Strong"
     if ((r["stabilizing"] or (chg >= BUILDING_MIN_RS_CHANGE and trend <= BUILDING_MAX_TREND))
-            and r["participation"] >= BUILDING_MIN_PARTICIPATION and rank >= BUILDING_MIN_RANK):
+            and r["participation"] >= BUILDING_MIN_PARTICIPATION and rank >= BUILDING_MIN_RANK
+            and r["ret_1m"] > BUILDING_MIN_RET_1M):
         return "Building"
     if r["pct_above_sma50"] < 0 and chg <= FADING_MAX_RS_CHANGE:
         return "Fading"
@@ -368,7 +391,8 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
             out += (
                 f"<tr><td>{r['ticker']}</td><td>{r['score']:.0f}</td>"
                 f"<td>{r['rs_rank']:.0f}</td><td>{r['rs_change']:+.0f}</td>"
-                f"<td>{r['vs_nifty']:+.1f}%</td><td>{int(r['trend_pts'])}/4</td>"
+                f"<td>{r['vs_nifty']:+.1f}%</td><td>{r['ret_3m']:+.1f}%</td>"
+                f"<td>{int(r['trend_pts'])}/4</td><td>{r['trend_quality']:.0f}</td>"
                 f"<td>{participation_label(r['participation'])}</td>"
                 f"<td>{r['ext_atr']:.1f}x</td><td>{r['rsi']}</td>"
                 f"<td>{r['action']}</td></tr>"
@@ -377,7 +401,7 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
 
     header = (
         "<tr><th>Ticker</th><th>Strength score</th><th>RS rank</th><th>RS chg (21d)</th>"
-        "<th>vs Nifty (3M)</th><th>Trend</th><th>Participation</th>"
+        "<th>vs Nifty (3M)</th><th>3M return</th><th>Trend</th><th>Trend quality</th><th>Participation</th>"
         "<th>Stretch (ATR)</th><th>RSI</th><th>Action</th></tr>"
     )
 
@@ -399,8 +423,8 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
     rest = df[df.state.isin(["Neutral", "Dormant"])].sort_values("score", ascending=False)
     rest_rows = "".join(
         f"<tr><td>{r['ticker']}</td><td>{r['state']}</td><td>{r['score']:.0f}</td>"
-        f"<td>{r['rs_rank']:.0f}</td><td>{r['vs_nifty']:+.1f}%</td><td>{int(r['trend_pts'])}/4</td>"
-        f"<td>{r['action']}</td></tr>"
+        f"<td>{r['rs_rank']:.0f}</td><td>{r['vs_nifty']:+.1f}%</td><td>{r['ret_3m']:+.1f}%</td>"
+        f"<td>{int(r['trend_pts'])}/4</td><td>{r['action']}</td></tr>"
         for _, r in rest.iterrows()
     )
     low_liq = ", ".join(sorted(df[df.state == "Low liquidity"]["ticker"])) or "none"
@@ -421,7 +445,8 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
     <p style="color:#666;font-size:12px;">
     RS rank = percentile of a blended 1/3/6/12-month return among all stocks scanned (100 = strongest).
     RS chg = rank change over 21 trading days. Trend = 4 checks on SMA50/SMA200. Participation = 3 volume/OBV checks.
-    Stretch = distance above the SMA50 in ATRs (Extended at {EXTENDED_ATR_MULT:g}x or more). Strength score is explained below.
+    Stretch = distance above the SMA50 in ATRs (Extended at {EXTENDED_ATR_MULT:g}x or more). 3M return = the stock's own 3-month return (not relative to anything). Trend quality = annualised slope of the last {TQ_DAYS} days of log price x R-squared: high = a fast, steady climb, near zero or negative = flat, choppy or falling.
+    Strength score is explained below.
     Price and volume signals only; no earnings or fundamentals. Not investment advice.</p>
     <p style="font-size:12px;"><b>Strength score (0-100)</b> = {W_RANK:g} x RS rank + {W_TREND:g} x (Trend / 4 x 100) + {W_PART:g} x (Participation / 3 x 100).
     It measures how strong a stock is <i>now</i>, not how good an entry it is. It sorts stocks within each state
@@ -435,7 +460,7 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
 
     <h3>Neutral and Dormant ({len(rest)})</h3>
     <table border="1" cellpadding="4" cellspacing="0">
-    <tr><th>Ticker</th><th>State</th><th>Strength score</th><th>RS rank</th><th>vs Nifty (3M)</th><th>Trend</th><th>Action</th></tr>
+    <tr><th>Ticker</th><th>State</th><th>Strength score</th><th>RS rank</th><th>vs Nifty (3M)</th><th>3M return</th><th>Trend</th><th>Action</th></tr>
     {rest_rows}</table>
 
     <h3>Low liquidity (no state given)</h3>
