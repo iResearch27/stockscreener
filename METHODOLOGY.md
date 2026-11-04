@@ -8,6 +8,7 @@ and the known limitations, so the logic can be rebuilt or tuned later.
 1. Overview of the trackers
 2. Turnaround screener: Early and Confirmed scoring
 3. Confirmed Uptrend tracker
+3a. Momentum tracker
 4. TradingView Pine Script dashboard
 5. Automation and schedules
 6. Repo layout and operating notes
@@ -22,6 +23,7 @@ and the known limitations, so the logic can be rebuilt or tuned later.
 |---|---|---|---|
 | Turnaround screener (`screener.py`) | Catch stocks turning up from a downtrend, ideally before the obvious crossovers | GitHub Actions | Email table |
 | Confirmed Uptrend tracker (`uptrend_tracker.py`) | Find stocks already in a sustained, strong uptrend | GitHub Actions | Email table |
+| Momentum tracker (`momentum_tracker.py`) | Give every stock one momentum state (Building, Strong, Extended, Fading, Dormant, Neutral) with a suggested action; helps discovery and entry timing | GitHub Actions | Email grouped by state |
 | Pine Script dashboard (TradingView) | Same turnaround logic as a live on-chart table, up to 40 stocks | TradingView | Table + optional alert |
 | Keep Repo Active (`keepalive.yml`) | Stops GitHub pausing scheduled workflows after 60 days of no commits | GitHub Actions | A monthly commit |
 
@@ -143,6 +145,52 @@ The benchmark is the Nifty 50 (`^NSEI`).
 
 ---
 
+## 3a. Momentum tracker (added Nov 2026)
+
+Answers "does this stock have the right amount of momentum right now?" For a stock you like, the ideal is
+early-to-mid momentum (the market starting to notice it), not maximum momentum (already run). Every stock
+gets one state. It reads `uptrend_watchlist.txt` (the larger list) and ranks stocks against each other,
+so it needs the whole list scored in one run. Run schedule: 4:10 PM IST, Monday to Friday (`momentum_tracker.yml`).
+
+**Inputs**
+- **Relative strength (RS):** `RS_raw = 0.2*R21 + 0.4*R63 + 0.2*R126 + 0.2*R252` (R = % return over N trading days).
+  `RS_rank` = percentile of RS_raw among all stocks scanned (0 to 100). `RS_change` = RS_rank today minus RS_rank 21 trading days ago.
+  `vs Nifty` = stock's 63-day return minus Nifty's 63-day return.
+- **Trend points (0 to 4), one each:** close > SMA50; SMA50 > SMA200; close > SMA200; SMA50 higher than 10 days ago.
+- **Participation (0 to 3), one each:** OBV above its 20-day average and above its value 20 days ago;
+  up-day volume / down-day volume over 20 days > 1.1; 10-day average volume >= 50-day average volume.
+  Labels: Confirming (3), Mixed (1 or 2), Not confirming (0).
+- **Stretch:** `ext_ATR = (close - SMA50) / ATR14` (ATR = average true range, a measure of typical daily movement,
+  so a calm bank and a volatile small-cap are comparable). Stretched if `ext_ATR >= 6`, or RSI >= 70 and more than 10% above the SMA50.
+- **Score (0 to 100), sorting only:** `0.5*RS_rank + 0.25*(Trend/4*100) + 0.25*(Participation/3*100)`.
+- Also reuses the Stabilizing-after-oversold rules (section 2.4a) and the liquidity filter.
+
+**State rules, checked in this order**
+
+| # | State | Rule | Suggested action |
+|---|---|---|---|
+| 1 | Low liquidity | Fails the liquidity filter (100,000 shares or Rs 1 crore a day, 20-day average) | Listed separately, no state |
+| 2 | Extended | Trend >= 3 and stretched | Don't chase |
+| 3 | Strong | Trend >= 3, RS_rank >= 60, vs Nifty > 0 | Add on a pullback |
+| 4 | Building | (Stabilizing, or RS_change >= +10 with Trend <= 2) and Participation >= 1 | Buy in tranches |
+| 5 | Fading | Close below SMA50 and RS_change <= -10 | Avoid / exit |
+| 6 | Dormant | RS_rank < 40 and Trend <= 1 | Watch |
+| 7 | Neutral | Anything else (catch-all) | Watch |
+
+**Email:** header with Nifty 3M return and a count per state; then one table each for Building, Strong, Extended
+and Fading (sorted by score); then a compact Neutral/Dormant table; then the low-liquidity tickers.
+Columns: Ticker, Score, RS rank, RS chg (21d), vs Nifty (3M), Trend, Participation, Stretch (ATR), RSI, Action.
+The same data-check banner and `[CHECK DATA]` subject prefix as the other trackers apply.
+
+**Tuning:** all thresholds are named constants at the top of `momentum_tracker.py`. They are reasoned starting
+points, not backtested. Likeliest to need tuning after a few weeks of emails: `STRONG_MIN_RANK`,
+`BUILDING_MIN_RS_CHANGE` / `FADING_MAX_RS_CHANGE`, `EXTENDED_ATR_MULT`. Needs at least 280 rows of history per stock.
+
+**Limits:** price and volume only (no earnings or fundamentals); OBV is crude; ranks are relative to the list you
+track, so a weak list gives flattering ranks; states are a sorting aid, not a trading signal.
+
+---
+
 ## 4. TradingView Pine Script dashboard
 
 Pine Script v6 indicator ("Multi-Stock Turnaround Screener") using the same 12 conditions and the
@@ -174,6 +222,7 @@ best-effort and can run a few minutes late.
 |---|---|---|
 | `daily_screener.yml` | Turnaround screener, Mon-Fri 4:00 PM IST | `30 10 * * 1-5` |
 | `uptrend_tracker.yml` | Uptrend tracker, Mon-Fri 4:00 PM IST | `30 10 * * 1-5` |
+| `momentum_tracker.yml` | Momentum tracker, Mon-Fri 4:10 PM IST | `40 10 * * 1-5` |
 | `keepalive.yml` | Monthly commit, 1st of each month 3:00 AM UTC | `0 3 1 * *` |
 
 All workflows can also be run by hand from the Actions tab (**Run workflow**).
@@ -205,6 +254,7 @@ for private repos. Each run takes a few minutes, so usage stays far below that.
 ```
 stockscreener/
   screener.py               turnaround screener
+  momentum_tracker.py       momentum tracker (reads uptrend_watchlist.txt)
   stocks.txt                watchlist for the turnaround screener
   uptrend_tracker.py        confirmed uptrend tracker
   uptrend_watchlist.txt     watchlist for the uptrend tracker
@@ -214,6 +264,7 @@ stockscreener/
   .github/workflows/
     daily_screener.yml
     uptrend_tracker.yml
+    momentum_tracker.yml
     keepalive.yml
 ```
 
