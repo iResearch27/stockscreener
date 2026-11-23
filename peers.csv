@@ -1,0 +1,11 @@
+# Optional overrides for the Valuation tracker. One line per stock that needs them.
+#   ticker : the stock (with or without .NS)
+#   peers  : semicolon-separated tickers whose median P/E is used instead of Screener's industry P/E
+#            (peers must be in your Screener export; at least 3 with a P/E between 0 and 100)
+#   type   : optional. lender, insurer, cyclical or normal. Overrides what Yahoo says
+#            (for example Asian Paints is "Specialty Chemicals" on Yahoo but is a consumer company: normal)
+# Lines starting with # are ignored. Delete the example rows and add your own.
+ticker,peers,type
+# TITAN,TRENT;PAGEIND;BATAINDIA;KALYANKJIL;SENCO,normal
+# ADANIPORTS,,normal
+# ASIANPAINT,BERGEPAINT;KANSAINER;INDIGOPNTS,normal

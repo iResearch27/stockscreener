@@ -396,6 +396,32 @@ Quality tracker and the company's own results. Thresholds are starting values, n
 
 ---
 
+## 3d. Valuation tracker (added Nov 2026, version 1)
+
+**Question answered:** how much am I paying for what a company earns and how fast it grows? It sits between Quality (is it a good business?) and Earnings/technicals (is something happening now?).
+It is a risk and sizing aid, not a buy or sell signal: valuation says little about the next 1 to 3 months, and expensive stocks can keep rising.
+
+**Inputs:** the manual Screener.in export `screener_export.xlsx` (columns used: P/E, Ind PE, EV / EBITDA, CMP / BV, ROE 3Yr, Profit Var 5Yrs %; a historical P/E column is used if present), `watchlist.txt`, and an optional `peers.csv`.
+Only stocks in both the export and the watchlist are valued. Runs Monday 8:00 AM IST (`valuation_tracker.yml`), or on demand.
+
+**Method**
+- **Peer P/E:** the median P/E of the peers listed for that stock in `peers.csv` (peers with a negative P/E or above 100 ignored; at least 3 needed), otherwise Screener's industry P/E.
+- **Premium** = P/E / peer P/E - 1. Cheap: -20% or lower. Fair: up to +20%. Rich: up to +50%. Stretched: above +50%.
+- **PEG** = P/E / 5-year profit growth (growth capped at 40%; not shown below 5%). At or below 1 the premium is "backed by growth"; above 2.5 it is not. A cheap stock with low growth is noted as a possible value trap.
+- **Own history:** if the export has a 3, 5 or 10-year historical P/E column, the premium to it is shown and noted when 25% above or 20% below.
+- **Lenders** (banks and NBFCs): judged on P/B divided by ROE against the median of lenders in the export, not on P/E.
+- **Cyclicals** (steel, cement, oil, metals, commodity chemicals, paper and similar, by Yahoo's industry wording): not tagged, because P/E is lowest at peak profits. EV/EBITDA and P/B are shown instead.
+- **Insurers** are not valued.
+- **Types** (lender, insurer, cyclical) come from Yahoo's sector and industry and can be overridden in `peers.csv` (for example, Asian Paints is "Specialty Chemicals" on Yahoo but is a consumer company).
+
+**peers.csv:** columns `ticker, peers, type`. `peers` is a semicolon-separated list of tickers that must also be in the export. Start with the conglomerates the email lists under "Peer groups to check"
+(Reliance, L&T, M&M, ITC and similar), where an industry P/E is a poor yardstick.
+
+**Limits:** Screener's industry P/E is a rough yardstick (the method behind it is not published) and mixes different businesses. A premium can be earned or a bubble, and a discount can be a bargain or a trap.
+Growth is a 5-year history, not a forecast. Screener's figures are as of the export date. Version 1 does not yet combine with the other trackers into one shortlist.
+
+---
+
 ## 4. TradingView Pine Script dashboard
 
 Pine Script v6 indicator ("Multi-Stock Turnaround Screener") using the same 12 conditions and the
@@ -430,6 +456,7 @@ best-effort and can run a few minutes late.
 | `momentum_tracker.yml` | Momentum tracker, Mon-Fri 4:10 PM IST | `40 10 * * 1-5` |
 | `quality_tracker.yml` | Quality tracker, Saturday 5:00 PM IST | `30 11 * * 6` |
 | `earnings_tracker.yml` | Earnings tracker, Mon-Fri 4:30 PM IST | `0 11 * * 1-5` |
+| `valuation_tracker.yml` | Valuation tracker, Monday 8:00 AM IST | `30 2 * * 1` |
 | `backtest_momentum.yml` | Momentum backtest, manual only | `workflow_dispatch` |
 | `backtest_momentum_2.yml` | Momentum backtest #2 (rule edge), manual only | `workflow_dispatch` |
 | `backtest_momentum_3.yml` | Momentum backtest #3 (relative strength), manual only | `workflow_dispatch` |

@@ -33,6 +33,14 @@ COLUMN_MAP = {
     "roa3yr%": "roa3",
     "debt/eq": "de",
     "cmp/bv": "pb",
+    "p/e": "pe",
+    "ev/ebitda": "ev_ebitda",
+    "indpe": "ind_pe",
+    "marcaprs.cr.": "mcap_cr",
+    "cmprs.": "cmp",
+    "profitvar5yrs%": "profit_5y",
+    "salesvar5yrs%": "sales_5y",
+    "peg": "peg",
 }
 
 
@@ -52,7 +60,19 @@ def _find_extra(headers):
     return op, dt
 
 
-def load_screener(path=None):
+def _find_hist_pe(headers):
+    """Optional historical P/E columns (3, 5 or 10 year), if the export includes them."""
+    found = {}
+    for h in headers:
+        n = _norm(h)
+        if "hist" in n and "pe" in n:
+            for yrs in ("10", "5", "3"):
+                if yrs in n and yrs not in found:
+                    found[yrs] = h
+    return found
+
+
+def load_screener(path=None, require=("ni_yoy", "rev_yoy")):
     """Returns (DataFrame indexed by NSE ticker such as 'ICICIBANK.NS', info string) or (empty DataFrame, reason)."""
     path = path or SCREENER_FILE
     if not os.path.exists(path):
@@ -67,6 +87,8 @@ def load_screener(path=None):
             f = COLUMN_MAP.get(_norm(h))
             if f:
                 col[f] = i
+        for yrs, h in _find_hist_pe(headers).items():
+            col[f"pe_hist{yrs}"] = headers.index(h)
         op_h, dt_h = _find_extra(headers)
         if op_h is not None:
             col["op_yoy"] = headers.index(op_h)
@@ -91,9 +113,9 @@ def load_screener(path=None):
         df = pd.DataFrame.from_dict(out, orient="index")
         modified = wb.properties.modified
         info = f"{len(df)} companies from {os.path.basename(path)}" + (f", file dated {modified:%d %b %Y}" if modified else "")
-        missing = [f for f in ("ni_yoy", "rev_yoy") if f not in col]
+        missing = [f for f in require if f not in col]
         if missing:
-            return pd.DataFrame(), f"{path}: columns not found for {missing}. Check the headers (expected 'Qtr Profit Var %', 'Qtr Sales Var %')."
+            return pd.DataFrame(), f"{path}: columns not found for {missing}. Check the column headers in the export."
         return df, info
     except Exception as e:
         return pd.DataFrame(), f"Could not read {path}: {e}"
