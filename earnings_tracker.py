@@ -7,15 +7,21 @@ For every stock in watchlist.txt it reads the latest quarterly results from Yaho
      (Research on post-earnings drift suggests prices can keep adjusting for weeks after good results. This is a
      candidate list for research, not a buy signal.)
   3. STRONG / GOOD RESULTS: everything that reported well, with the price reaction so far.
-  4. WEAK RESULTS: profit or sales fell, to avoid or review if you own them.
-  5. PENDING: stocks that have not yet reported the latest quarter.
+  4. WEAK RESULTS: operating profit fell (or a loss), to avoid or review if you own them.
+  5. MIXED RESULTS: e.g. profit up but sales down.
+  6. PENDING and NOT ANALYSED: stocks that have not reported, and stocks that could not be analysed (and why).
+
+Profit is judged on operating numbers (EBITDA and EBIT; pre-tax profit for banks and lenders), because net profit is
+distorted by the tax rate and one-off items. Net profit and book value growth are shown alongside. Banks and lenders are
+also judged on book value growth, a better yardstick for them than sales.
 
 Result quality is judged from ACTUAL growth against the same quarter last year (reliable), not against analyst estimates
 (Yahoo has these for few Indian stocks, so beat/miss versus consensus is not available for most).
 
-Limits: yearly comparison needs 5 quarters of data and Yahoo sometimes gives only 4; results dates come from Yahoo's
-earnings calendar, which is missing for some stocks (those show reaction as n/a). Banks and lenders have no operating
-margin, so the margin test is skipped for them.
+Limits: yearly comparison needs 5 quarters of data and Yahoo sometimes gives only 4 (those stocks get a sequential
+quarter-on-quarter view instead, which is seasonal and not graded). Result dates come from Yahoo's earnings calendar; when
+missing, the date is estimated from the volume spike after quarter-end and shown with "~". Banks and lenders have no
+operating margin, so the margin test is skipped for them.
 """
 
 import os
@@ -42,10 +48,15 @@ CYCLE_GRACE_DAYS = 20            # a quarter ending within this of the latest qu
 
 # Result quality (growth versus the same quarter last year)
 STRONG_MIN_REV_YOY = 10.0
-STRONG_MIN_NI_YOY = 15.0
+STRONG_MIN_OP_YOY = 15.0         # operating profit (EBIT, or pre-tax profit for lenders)
+STRONG_MIN_BV_YOY = 10.0         # lenders: book value growth
+STRONG_MIN_NI_YOY = 0.0          # net profit must at least not have fallen
 STRONG_MIN_MARGIN_CHG_BPS = -100.0
 GOOD_MIN_REV_YOY = 5.0
-GOOD_MIN_NI_YOY = 5.0
+GOOD_MIN_OP_YOY = 5.0
+GOOD_MIN_NI_YOY = 0.0
+ONE_OFF_GAP_PTS = 40.0           # net profit growth differs from operating profit growth by this much: flag it
+CRASH_NI_PCT = -70.0             # net profit down this much while operating profit is not: likely one-off
 
 # Price reaction
 REACTION_DAYS_AFTER = 1          # reaction = close one trading day after the result date vs the close before it
@@ -54,6 +65,11 @@ SOLD_ON_NEWS_PCT = -3.0          # fell more than this after strong results
 RUNUP_DAYS = 20
 RUNUP_PCT = 10.0                 # "already ran" = up this much in the 20 trading days before results
 MIN_ROWS = 210                   # price rows needed for SMA200
+
+# Estimating a missing result date from the volume spike
+EST_WINDOW_START = 15            # days after quarter-end to start looking
+EST_WINDOW_END = 80              # ...and to stop looking
+EST_MIN_VOL_RATIO = 2.0          # spike day volume vs median of the prior 20 days
 
 
 # ============================================================
@@ -106,6 +122,14 @@ def fetch_results(t):
             rev = qseries(q, ["Total Revenue", "Operating Revenue"])
             ni = qseries(q, ["Net Income", "Net Income Common Stockholders"])
             opi = qseries(q, ["Operating Income", "EBIT"])
+            ebit = qseries(q, ["EBIT", "Operating Income"])
+            ebitda = qseries(q, ["EBITDA", "Normalized EBITDA"])
+            if ebitda.empty and len(opi):
+                da = qseries(q, ["Reconciled Depreciation", "Depreciation And Amortization In Income Statement",
+                                 "Depreciation Amortization Depletion"])
+                if len(da):
+                    ebitda = (opi + da.reindex(opi.index)).dropna()
+            pbt = qseries(q, ["Pretax Income"])
             if ni.empty:
                 if attempt == 0:
                     time.sleep(1.0)
@@ -121,6 +145,36 @@ def fetch_results(t):
             r["turned_profit"] = bool(r["ni"] > 0 and not np.isnan(ni_prev) and ni_prev <= 0)
             r["ni_yoy"] = pct_change(r["ni"], ni_prev)
             r["has_yoy"] = not (np.isnan(r["rev_yoy"]) and np.isnan(r["ni_yoy"]) and not r["turned_profit"])
+            r["ebitda_yoy"] = pct_change(float(ebitda.get(d0, np.nan)), year_ago(ebitda, d0)) if len(ebitda) else np.nan
+            r["ebit_yoy"] = pct_change(float(ebit.get(d0, np.nan)), year_ago(ebit, d0)) if len(ebit) else np.nan
+            r["pbt_yoy"] = pct_change(float(pbt.get(d0, np.nan)), year_ago(pbt, d0)) if len(pbt) else np.nan
+            # Operating profit growth used for grading: EBIT, else pre-tax profit (banks and lenders)
+            r["is_lender"] = bool(len(opi) == 0)
+            r["op_yoy"] = r["ebit_yoy"] if not np.isnan(r["ebit_yoy"]) else r["pbt_yoy"]
+            # Sequential view, used when a year-ago quarter is not available
+            def qoq(series):
+                if len(series) < 2 or series.index[-1] != d0 or series.iloc[-2] <= 0:
+                    return np.nan
+                return (float(series.iloc[-1]) / float(series.iloc[-2]) - 1) * 100
+            r["rev_qoq"], r["ni_qoq"] = qoq(rev), qoq(ni)
+            r["op_qoq"] = qoq(ebit) if len(ebit) else qoq(pbt)
+            r["bv_yoy"] = np.nan
+            try:
+                bs = getattr(tk, "quarterly_balance_sheet", None)
+                if bs is None or bs.empty:
+                    bs = getattr(tk, "balance_sheet", None)
+                eq = qseries(bs, ["Stockholders Equity", "Common Stock Equity", "Total Equity Gross Minority Interest"])
+                sh = qseries(bs, ["Ordinary Shares Number", "Share Issued"])
+                if len(eq):
+                    bd = eq.index[-1]
+                    if len(sh) and bd in sh.index and not np.isnan(year_ago(sh, bd)) and year_ago(sh, bd) > 0 and sh[bd] > 0:
+                        bv_now = eq.iloc[-1] / sh[bd]
+                        bv_prev = year_ago(eq, bd) / year_ago(sh, bd)
+                    else:
+                        bv_now, bv_prev = float(eq.iloc[-1]), year_ago(eq, bd)
+                    r["bv_yoy"] = pct_change(float(bv_now), float(bv_prev))
+            except Exception:
+                pass
 
             opm_now = float(opi.get(d0, np.nan)) / r["rev"] * 100 if len(opi) and r["rev"] and not np.isnan(r["rev"]) else np.nan
             rev_prev, opi_prev = year_ago(rev, d0), year_ago(opi, d0)
@@ -164,20 +218,63 @@ def fetch_all_results(tickers):
 # CLASSIFICATION
 # ============================================================
 def classify(r):
-    """Strong / Good / Mixed / Weak / n/a from growth versus the same quarter last year."""
+    """Strong / Good / Mixed / Weak / n/a from growth versus the same quarter last year.
+
+    Judged on operating profit (EBIT; pre-tax profit for lenders) so that tax and one-off items do not decide the grade.
+    Net profit must not have fallen for Strong or Good. Lenders must also show book value growth for Strong.
+    """
     if not r.get("has_yoy"):
         return "n/a"
-    rev, ni, mg = r["rev_yoy"], r["ni_yoy"], r["margin_chg_bps"]
+    rev, ni, op, bv, mg = r["rev_yoy"], r["ni_yoy"], r.get("op_yoy", np.nan), r.get("bv_yoy", np.nan), r["margin_chg_bps"]
+    core = op if not np.isnan(op) else ni            # fall back to net profit when no operating figure exists
+    ni_ok = np.isnan(ni) or ni >= STRONG_MIN_NI_YOY
     if r["turned_profit"] and (np.isnan(rev) or rev >= GOOD_MIN_REV_YOY):
         return "Strong"
     margin_ok = np.isnan(mg) or mg >= STRONG_MIN_MARGIN_CHG_BPS
-    if (not np.isnan(rev) and rev >= STRONG_MIN_REV_YOY) and (not np.isnan(ni) and ni >= STRONG_MIN_NI_YOY) and margin_ok:
+    bv_ok = (not r.get("is_lender")) or np.isnan(bv) or bv >= STRONG_MIN_BV_YOY
+    if (not np.isnan(rev) and rev >= STRONG_MIN_REV_YOY) and (not np.isnan(core) and core >= STRONG_MIN_OP_YOY) \
+            and ni_ok and margin_ok and bv_ok:
         return "Strong"
-    if (not np.isnan(rev) and rev >= GOOD_MIN_REV_YOY) and (not np.isnan(ni) and ni >= GOOD_MIN_NI_YOY):
+    if (not np.isnan(rev) and rev >= GOOD_MIN_REV_YOY) and (not np.isnan(core) and core >= GOOD_MIN_OP_YOY) and ni_ok:
         return "Good"
-    if (not np.isnan(ni) and ni < 0) or (not np.isnan(rev) and rev < 0) or r["ni"] <= 0:
+    if (not np.isnan(core) and core < 0) or r["ni"] <= 0:
         return "Weak"
-    return "Mixed"
+    return "Mixed"      # includes profit up with sales down, and results that are only modestly better
+
+
+def profit_note(r):
+    """Flag when net profit moved very differently from operating profit (tax rate or one-off items)."""
+    ni, op = r["ni_yoy"], r.get("op_yoy", np.nan)
+    if np.isnan(ni) or np.isnan(op):
+        return ""
+    if ni <= CRASH_NI_PCT and op > CRASH_NI_PCT / 2:
+        return "Net profit crash not in operations (one-off?)"
+    if ni - op >= ONE_OFF_GAP_PTS:
+        return "Net profit well above operating (tax/other income?)"
+    if op - ni >= ONE_OFF_GAP_PTS:
+        return "Net profit well below operating (tax/one-off?)"
+    return ""
+
+
+def estimate_result_date(df, q_end):
+    """Best guess of the result date from the biggest volume spike between quarter-end + 15 and + 80 days."""
+    try:
+        if "Volume" not in df.columns:
+            return pd.NaT
+        v = df["Volume"].astype(float)
+        idx = v.index.tz_localize(None) if getattr(v.index, "tz", None) is not None else v.index
+        v = pd.Series(v.values, index=idx)
+        base = v.rolling(20).median().shift(1)
+        ratio = (v / base).replace([np.inf, -np.inf], np.nan)
+        win = ratio[(ratio.index >= q_end + pd.Timedelta(days=EST_WINDOW_START)) &
+                    (ratio.index <= q_end + pd.Timedelta(days=EST_WINDOW_END))].dropna()
+        if win.empty or win.max() < EST_MIN_VOL_RATIO:
+            return pd.NaT
+        spike = win.idxmax()
+        prior = v.index[v.index < spike]
+        return prior[-1].normalize() if len(prior) else pd.NaT     # result date = trading day before the spike
+    except Exception:
+        return pd.NaT
 
 
 def latest_cycle_end(rows):
@@ -227,7 +324,13 @@ def build_universe(rows, data):
         r = dict(r)
         r["quality"] = classify(r)
         r["reported"] = cycle_end is not None and (cycle_end - r["q_end"]).days <= CYCLE_GRACE_DAYS
+        r["note_profit"] = profit_note(r) if r["quality"] != "n/a" else ""
         df = data.get(r["ticker"])
+        r["date_est"] = False
+        if df is not None and pd.isna(r["result_date"]) and r["reported"]:
+            est = estimate_result_date(df, r["q_end"])
+            if pd.notna(est):
+                r["result_date"], r["date_est"] = est, True
         r.update(price_metrics(df, r["result_date"]) if df is not None else
                  {"price": np.nan, "above_sma200": None, "above_sma50": None, "ret_1m": np.nan,
                   "reaction": np.nan, "drift": np.nan, "runup": np.nan, "reaction_pending": False})
@@ -253,8 +356,8 @@ def f(x, nd=1, suffix="", plus=False):
     return f"{x:+.{nd}f}{suffix}" if plus else f"{x:.{nd}f}{suffix}"
 
 
-def date_s(d):
-    return "-" if pd.isna(d) else d.strftime("%d %b")
+def date_s(d, est=False):
+    return "-" if pd.isna(d) else ("~" if est else "") + d.strftime("%d %b")
 
 
 def tbl(headers, rows_):
@@ -273,19 +376,25 @@ def trend_s(r):
 def result_rows(sub):
     rows_ = []
     for _, r in sub.iterrows():
+        note = "; ".join(x for x in [r["flag"], r["note_profit"]] if x) or "-"
         rows_.append([r["ticker"].replace(".NS", ""), r["quality"], date_s(r["q_end"]),
-                      f(r["rev_yoy"], 0, "%", True), "turned profit" if r["turned_profit"] else f(r["ni_yoy"], 0, "%", True),
-                      f(r["margin_chg_bps"], 0, " bps", True), date_s(r["result_date"]),
+                      f(r["rev_yoy"], 0, "%", True), f(r["ebitda_yoy"], 0, "%", True), f(r["ebit_yoy"], 0, "%", True),
+                      f(r["pbt_yoy"], 0, "%", True),
+                      "turned profit" if r["turned_profit"] else f(r["ni_yoy"], 0, "%", True),
+                      f(r["bv_yoy"], 0, "%", True),
+                      f(r["margin_chg_bps"], 0, " bps", True), date_s(r["result_date"], r["date_est"]),
                       "pending" if r["reaction_pending"] else f(r["reaction"], 1, "%", True),
-                      f(r["drift"], 1, "%", True), f(r["runup"], 0, "%", True), trend_s(r), r["flag"] or "-"])
+                      f(r["drift"], 1, "%", True), f(r["runup"], 0, "%", True), trend_s(r), note])
     return rows_
 
 
-RESULT_HEAD = ["Ticker", "Result", "Quarter", "Sales YoY", "Profit YoY", "Margin chg", "Declared",
-               "Reaction (1d)", "Since result", "Run-up before", "Trend", "Note"]
+RESULT_HEAD = ["Ticker", "Result", "Quarter", "Sales YoY", "EBITDA YoY", "EBIT YoY", "Pre-tax YoY", "Net profit YoY",
+               "Book value YoY", "EBIT margin chg", "Declared", "Reaction (1d)", "Since result", "Run-up before", "Trend", "Note"]
 
 
-def build_email_html(df, cycle_end, n_requested, n_with_data, warns):
+def build_email_html(df, cycle_end, n_requested, n_with_data, warns, not_analysed=None, limited=None):
+    not_analysed = not_analysed or {}
+    limited = limited if limited is not None else pd.DataFrame()
     rep = df[df["reported"]]
     pend = df[~df["reported"]]
     due = df[df["next_date"].notna()].copy()
@@ -295,14 +404,16 @@ def build_email_html(df, cycle_end, n_requested, n_with_data, warns):
 
     muted = rep[rep["flag"] == "Muted"].sort_values("ni_yoy", ascending=False)
     good = rep[rep["quality"].isin(["Strong", "Good"])].sort_values(["quality", "ni_yoy"], ascending=[False, False])
-    weak = rep[rep["quality"] == "Weak"].sort_values("ni_yoy")
+    weak = rep[rep["quality"] == "Weak"].sort_values("op_yoy")
+    mixed = rep[rep["quality"] == "Mixed"].sort_values("op_yoy", ascending=False)
 
     warn_html = m.warning_html(warns)
     h = f"""<html><body style="font-family:Arial,sans-serif;">
 <h2>Earnings Tracker, {datetime.now().strftime('%d %b %Y')}</h2>
 <p style="font-size:13px;">Latest quarter in this cycle ends {cycle_end.strftime('%d %b %Y') if cycle_end is not None else '-'}.
-<b>{len(rep)}</b> stocks have reported it, <b>{len(pend)}</b> have not. Result quality is judged from growth against the same
-quarter last year, not against analyst estimates.</p>{warn_html}
+<b>{len(rep)}</b> stocks have reported it, <b>{len(pend)}</b> have not, and <b>{sum(len(v) for v in not_analysed.values()) + len(limited)}</b>
+could not be graded (listed at the bottom, with the reason). Result quality is judged from growth in operating profit against the
+same quarter last year, not against analyst estimates.</p>{warn_html}
 """
     h += f"<h3>Results due in the next {DUE_DAYS} days ({len(due)})</h3>"
     if len(due):
@@ -324,21 +435,43 @@ quarter last year, not against analyst estimates.</p>{warn_html}
     h += f"<h3>Weak results ({len(weak)})</h3>"
     h += tbl(RESULT_HEAD, result_rows(weak)) if len(weak) else "<p>None.</p>"
 
+    h += f"<h3>Mixed results ({len(mixed)})</h3>"
+    h += ('<p style="font-size:11px;color:#555;">Neither strong nor weak: for example profit up but sales down, or only modest growth. '
+          "Worth a look at the company's own commentary.</p>")
+    h += tbl(RESULT_HEAD, result_rows(mixed)) if len(mixed) else "<p>None.</p>"
+
     if len(pend):
         h += (f'<h3>Not yet reported ({len(pend)})</h3><p style="font-size:12px;">'
               + ", ".join(sorted(t.replace(".NS", "") for t in pend["ticker"])) + "</p>")
 
+    if len(limited):
+        h += f"<h3>Limited history: sequential view only ({len(limited)})</h3>"
+        h += ('<p style="font-size:11px;color:#555;">Yahoo has no year-ago quarter for these, so they are compared with the previous quarter. '
+              "That is seasonal and is not graded. Treat it as a pointer only.</p>")
+        h += tbl(["Ticker", "Quarter", "Sales QoQ", "Operating profit QoQ", "Net profit QoQ", "Book value YoY"],
+                 [[r["ticker"].replace(".NS", ""), date_s(r["q_end"]), f(r["rev_qoq"], 0, "%", True),
+                   f(r["op_qoq"], 0, "%", True), f(r["ni_qoq"], 0, "%", True), f(r["bv_yoy"], 0, "%", True)]
+                  for _, r in limited.iterrows()])
+    for reason, names in not_analysed.items():
+        if names:
+            h += (f'<h3>Not analysed: {reason} ({len(names)})</h3><p style="font-size:12px;">'
+                  + ", ".join(sorted(t.replace(".NS", "") for t in names)) + "</p>")
+
     h += f"""
 <h3>How to read this</h3>
 <table style="border-collapse:collapse;font-size:12px;">
-<tr><td style="padding:3px 8px;"><b>Strong</b></td><td style="padding:3px 8px;">Sales up {STRONG_MIN_REV_YOY:.0f}%+ and profit up {STRONG_MIN_NI_YOY:.0f}%+ versus the same quarter last year, with operating margin not down more than {abs(STRONG_MIN_MARGIN_CHG_BPS):.0f} bps (or a company that turned profitable). Banks skip the margin test.</td></tr>
-<tr><td style="padding:3px 8px;"><b>Good</b></td><td style="padding:3px 8px;">Sales up {GOOD_MIN_REV_YOY:.0f}%+ and profit up {GOOD_MIN_NI_YOY:.0f}%+.</td></tr>
-<tr><td style="padding:3px 8px;"><b>Weak</b></td><td style="padding:3px 8px;">Profit or sales fell versus last year, or the company made a loss. Mixed results are not listed.</td></tr>
+<tr><td style="padding:3px 8px;"><b>Operating profit</b></td><td style="padding:3px 8px;">EBIT growth (pre-tax profit for banks and lenders). EBITDA, pre-tax and net profit are shown beside it. Net profit is affected by the tax rate and one-offs, so it is not used to grade, except that it must not have fallen for Strong or Good.</td></tr>
+<tr><td style="padding:3px 8px;"><b>Strong</b></td><td style="padding:3px 8px;">Sales up {STRONG_MIN_REV_YOY:.0f}%+ and operating profit up {STRONG_MIN_OP_YOY:.0f}%+ versus the same quarter last year, net profit not down, and EBIT margin not down more than {abs(STRONG_MIN_MARGIN_CHG_BPS):.0f} bps (or a company that turned profitable). Banks and lenders skip the margin test and also need book value up {STRONG_MIN_BV_YOY:.0f}%+.</td></tr>
+<tr><td style="padding:3px 8px;"><b>Good</b></td><td style="padding:3px 8px;">Sales up {GOOD_MIN_REV_YOY:.0f}%+ and operating profit up {GOOD_MIN_OP_YOY:.0f}%+, net profit not down.</td></tr>
+<tr><td style="padding:3px 8px;"><b>Weak</b></td><td style="padding:3px 8px;">Operating profit fell versus last year, or the company made a loss.</td></tr>
+<tr><td style="padding:3px 8px;"><b>Mixed</b></td><td style="padding:3px 8px;">Everything else, for example profit up while sales fell.</td></tr>
+<tr><td style="padding:3px 8px;"><b>Book value YoY</b></td><td style="padding:3px 8px;">Growth in book value per share (equity if share count is missing) over the year, from Yahoo's latest balance sheet, which can be older than the quarter. The key growth measure for banks and lenders.</td></tr>
+<tr><td style="padding:3px 8px;"><b>Declared</b></td><td style="padding:3px 8px;">Result date from Yahoo. A date with "~" is estimated from the volume spike and may be a day off.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Reaction (1d)</b></td><td style="padding:3px 8px;">Price change from the close before the result date to the close one trading day after it. Results announced after market hours show up the next day, so one day catches both cases.</td></tr>
-<tr><td style="padding:3px 8px;"><b>Note</b></td><td style="padding:3px 8px;"><b>Muted</b>: good results, little price move, trend intact. <b>Sold on good news</b>: fell 3%+ after good results. <b>Ran before results</b>: up 10%+ in the 20 days before the result.</td></tr>
+<tr><td style="padding:3px 8px;"><b>Note</b></td><td style="padding:3px 8px;"><b>Muted</b>: good results, little price move, trend intact. <b>Sold on good news</b>: fell 3%+ after good results. <b>Ran before results</b>: up 10%+ in the 20 days before the result. Profit notes flag net profit moving very differently from operating profit (tax rate or one-off items): check the company's own results.</td></tr>
 </table>
 <p style="font-size:12px;color:#a00;"><b>Limits:</b> a strong quarter does not mean a strong stock. Check the Quality tracker, and read the company's own results (one-off gains can inflate profit).
-Yahoo's data can be late or wrong, and its results calendar is missing for some Indian stocks (reaction shows as "-"). Yearly comparisons need 5 quarters of history; stocks without them are left out.</p>
+Yahoo's data can be late or wrong, and its results calendar is missing for some Indian stocks (dates then estimated, marked "~"). EBITDA is missing for some companies. Yearly comparisons need 5 quarters of history; stocks without them appear in the sequential table or the not-analysed lists.</p>
 </body></html>"""
     return h
 
@@ -365,11 +498,22 @@ def main():
         return
 
     df, cycle_end = build_universe(rows, data)
-    df = df[df["has_yoy"]].copy() if len(df) else df
+    no_data = [r["ticker"] for r in rows if not r.get("has_data")]
+    full = df
+    df = full[full["has_yoy"]].copy() if len(full) else full
+    limited = full[~full["has_yoy"] & full["reported"]].copy() if len(full) else full
+    limited = limited[limited["rev_qoq"].notna() | limited["ni_qoq"].notna()] if len(limited) else limited
+    lim_names = set(limited["ticker"]) if len(limited) else set()
+    not_analysed = {
+        "no quarterly data from Yahoo": no_data,
+        "too little history for any comparison": [t for t in (full[~full["has_yoy"]]["ticker"] if len(full) else [])
+                                                  if t not in lim_names],
+    }
     if df.empty:
         print("No stock has enough quarters for a yearly comparison. Exiting.")
         return
     print(df["quality"].value_counts().to_string())
+    print(f"Coverage: graded {len(df)}, sequential only {len(lim_names)}, no data {len(no_data)}, of {len(tickers)}")
 
     warns = m.build_warnings(data, len(tickers)) if data else []
     if n_with < 0.7 * len(tickers):
@@ -377,7 +521,7 @@ def main():
     for w in warns:
         print("WARNING:", w)
 
-    html = build_email_html(df, cycle_end, len(tickers), n_with, warns)
+    html = build_email_html(df, cycle_end, len(tickers), n_with, warns, not_analysed, limited)
     flag = " [CHECK DATA]" if warns else ""
     m.send_email(f"Earnings Tracker, {datetime.now().strftime('%d %b %Y')}{flag}", html)
 
