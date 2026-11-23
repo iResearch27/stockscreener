@@ -174,7 +174,7 @@ def value_stock(t, x, stype, peer_list, sc, lender_ref):
     r = {"ticker": t, "type": stype, "pe": x.get("pe", np.nan), "ev_ebitda": x.get("ev_ebitda", np.nan),
          "pb": x.get("pb", np.nan), "roe3": x.get("roe3", np.nan), "growth": x.get("profit_5y", np.nan),
          "notes": [], "peer_pe": np.nan, "peer_src": "-", "premium": np.nan, "peg": np.nan, "hist_prem": np.nan,
-         "pb_per_roe": np.nan, "tag": "Not valued"}
+         "pb_per_roe": np.nan, "tag": "Not valued", "own_peers": bool(peer_list)}
     # own history
     for yrs in ("10", "5", "3"):
         h = x.get(f"pe_hist{yrs}", np.nan)
@@ -246,7 +246,11 @@ def value_stock(t, x, stype, peer_list, sc, lender_ref):
     if t in CONGLOMERATE_HINT and not peer_list:
         r["notes"].append("Conglomerate: industry P/E is a poor yardstick, add a peers.csv entry")
     if not np.isnan(r["premium"]) and abs(r["premium"]) > 100:
-        r["notes"].append("Premium over 100%: check the peer group")
+        r["notes"].append("Premium over 100% even against your peers: earnings look depressed, or the peer list is off"
+                          if peer_list else "Premium over 100%: check the peer group")
+    roe = r["roe3"]
+    if roe is not None and not np.isnan(roe) and roe < 8:
+        r["notes"].append("ROE under 8%: weak returns on capital, so the P/E can overstate how expensive it is (and a low P/E can mislead)")
     if not np.isnan(r["hist_prem"]):
         if r["hist_prem"] >= HIST_RICH_PCT:
             r["notes"].append(f"{r['hist_prem']:+.0f}% above own {r['hist_yrs']}-year P/E")
@@ -332,10 +336,16 @@ This says how much you pay for what a company earns. It is not a buy or sell sig
         sub = sub.sort_values("premium" if k in ascending else "ticker", ascending=ascending.get(k, True))
         h += f"<h3>{k} ({len(sub)})</h3>"
         h += tbl(HEAD, rows_html(sub)) if len(sub) else "<p>None.</p>"
-    chk = df[df["notes"].apply(lambda n: any(("poor yardstick" in x) or ("check the peer group" in x) or ("too few valid peers" in x) for x in n))]
+    chk = df[df.apply(lambda r: (not r["own_peers"] and any(("poor yardstick" in x) or ("check the peer group" in x) or ("no real comparison" in x) for x in r["notes"]))
+                      or any("too few valid peers" in x for x in r["notes"]), axis=1)]
     h += f"<h3>Peer groups to check ({len(chk)})</h3>"
-    h += ('<p style="font-size:12px;">Conglomerates and extreme premiums, where the industry P/E is probably the wrong yardstick. Add an entry for each in peers.csv: '
+    h += ('<p style="font-size:12px;">No usable peer list yet, and the industry P/E is probably the wrong yardstick (conglomerates, extreme premiums, or the stock is its own industry). '
+          "Add or fix an entry in peers.csv: "
           + (", ".join(sorted(t.replace(".NS", "") for t in chk["ticker"])) if len(chk) else "none") + ".</p>")
+    ext = df[df.apply(lambda r: r["own_peers"] and not np.isnan(r["premium"]) and abs(r["premium"]) > 100, axis=1)]
+    if len(ext):
+        h += ('<p style="font-size:12px;">Still more than double their peers, with your peer list in place (look at earnings quality and EV/EBITDA before trusting the P/E): '
+              + ", ".join(sorted(t.replace(".NS", "") for t in ext["ticker"])) + ".</p>")
     h += f"""
 <h3>How to read this</h3>
 <table style="border-collapse:collapse;font-size:12px;">

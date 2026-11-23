@@ -21,7 +21,7 @@ PNGJL,TITAN;KALYANKJIL;SENCO;THANGAMAYL;SKYGOLD,normal
 SENCO,TITAN;KALYANKJIL;THANGAMAYL;PNGJL;SKYGOLD,normal
 THANGAMAYL,TITAN;KALYANKJIL;SENCO;PNGJL;SKYGOLD,normal
 # --- Autos,,
-M&M,MARUTI;EICHERMOT;ASHOKLEY;ESCORTS;TMPV;TMCV,normal
+M&M,MARUTI;EICHERMOT;ASHOKLEY;ESCORTS;Tata Motors Pveh;Tata Motors,normal
 ASHOKLEY,M&M;EICHERMOT;ESCORTS,normal
 # --- Pharma and healthcare,,
 TORNTPHARM,CIPLA;LUPIN;ZYDUSLIFE;MANKIND;AUROPHARMA;IPCALAB,normal
@@ -52,7 +52,7 @@ GODREJPROP,DLF;OBEROIRLTY;LODHA;Brigade Enterpr.;Prestige Estates;SOBHA,normal
 # --- Hotels, footwear, building products
 EIHOTEL,Indian Hotels Co;Lemon Tree Hotel;Chalet Hotels;Juniper Hotels;SAMHI,normal
 RELAXO,BATAINDIA;METROBRAND;Campus Activewe.,normal
-CERA,KAJARIACER,normal
+CERA,KAJARIACER;Somany Ceramics;NITCO;Pokarna;Varmora Granito,normal
 # --- Type only (no peer list): tracked on EV/EBITDA and P/B, not tagged on P/E,
 GULFOILLUB,,cyclical
 TIINDIA,CRAFTSMAN;ENDURANCE;MOTHERSON,cyclical

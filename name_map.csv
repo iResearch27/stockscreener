@@ -13,3 +13,19 @@ LICI.NS,Life Insurance
 ADANIPORTS.NS,Adani Ports
 CONCOR.NS,Container Corpn.
 GESHIP.NS,GE Shipping Co
+CHOLAFIN.NS,Cholaman.Inv.&Fn
+SBICARD.NS,SBI Cards
+TCI.NS,Transport Corp.
+TEXRAIL.NS,Texmaco Rail
+TECHNOE.NS,Techno Elec.Engg
+SAIL.NS,S A I L
+IOC.NS,I O C L
+HUDCO.NS,H U D C O
+# Best guesses for stocks that were still not found (harmless if the name is not in your export)
+SULA.NS,Sula Vineyards
+SDBL.NS,Som Distilleries
+CONTROLPR.NS,Control Print
+AURIONPRO.NS,Aurionpro Solu.
+ALLCARGO.NS,Allcargo Logist.
+SNOWMAN.NS,Snowman Logist.
+TCIEXP.NS,TCI Express
