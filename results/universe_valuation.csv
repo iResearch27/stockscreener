@@ -1,12 +1,12 @@
 ticker,type,pe,ev_ebitda,pb,roe3,growth,notes,peer_pe,peer_src,premium,peg,hist_prem,pb_per_roe,tag,own_peers,run_date
 NPST.NS,normal,74.03,42.2,7.7,28.52,106.77,5-year profit growth of 107% a year comes from a low base: PEG not shown; Premium over 100%: check the peer group,28.64,Screener industry,158.4846368715084,,,,Stretched vs peers,False,2026-11-23
-BSE.NS,normal,49.66,35.26,19.23,36.1,69.36,"Screener's industry P/E is essentially this stock's own (its group is just or mostly this company): no real comparison, add a peers.csv entry",,-,,,,,Not valued,False,2026-11-23
-PRUDENT.NS,normal,45.13,30.13,11.68,31.52,37.45,"Screener's industry P/E is essentially this stock's own (its group is just or mostly this company): no real comparison, add a peers.csv entry",,-,,,,,Not valued,False,2026-11-23
+BSE.NS,normal,49.66,35.26,19.23,36.1,69.36,Peers not found in the export: CAMS; 5-year profit growth of 69% a year comes from a low base: PEG not shown,47.865,your peers (4 valid),3.7501305755771375,,,,Fair vs peers,True,2026-11-23
+PRUDENT.NS,normal,45.13,30.13,11.68,31.52,37.45,,40.89,your peers (7 valid),10.369283443384703,1.2050734312416556,,,Fair vs peers,True,2026-11-23
 MCX.NS,normal,50.85,36.92,26.01,36.39,48.69,,50.07,Screener industry,1.5578190533253489,1.27125,,,Fair vs peers,False,2026-11-23
 ARROWGREEN.NS,normal,12.95,8.13,3.4,28.25,49.43,,16.7,Screener industry,-22.455089820359287,0.32375,,,Cheap vs peers,False,2026-11-23
 CGPOWER.NS,normal,88.62,58.14,14.16,30.21,69.51,5-year profit growth of 70% a year comes from a low base: PEG not shown; Premium over 100%: check the peer group,30.77,Screener industry,188.00779980500488,,,,Stretched vs peers,False,2026-11-23
 WEBELSOLAR.NS,normal,8.02,5.18,3.59,56.37,99.11,5-year profit growth of 99% a year comes from a low base: PEG not shown,21.17,Screener industry,-62.11620217288616,,,,Cheap vs peers,False,2026-11-23
-ZENTEC.NS,normal,71.97,41.0,7.7,18.41,128.18,"Screener's industry P/E is essentially this stock's own (its group is just or mostly this company): no real comparison, add a peers.csv entry",,-,,,,,Not valued,False,2026-11-23
+ZENTEC.NS,normal,71.97,41.0,7.7,18.41,128.18,5-year profit growth of 128% a year comes from a low base: PEG not shown,71.41,Screener industry,0.784203893012192,,,,Fair vs peers,False,2026-11-23
 TDPOWERSYS.NS,normal,57.66,38.95,14.22,22.13,43.39,,30.77,Screener industry,87.39031524211893,1.4415,,,Stretched vs peers,False,2026-11-23
 ATLANTAELE.NS,normal,48.89,27.82,10.95,34.2,96.12,5-year profit growth of 96% a year comes from a low base: PEG not shown,29.96,Screener industry,63.18424566088117,,,,Stretched vs peers,False,2026-11-23
 GARUDA.NS,normal,9.37,7.02,2.62,29.27,60.48,5-year profit growth of 60% a year comes from a low base: PEG not shown,13.94,Screener industry,-32.783357245337164,,,,Cheap vs peers,False,2026-11-23
@@ -14,7 +14,7 @@ NETWEB.NS,normal,65.27,41.97,11.42,28.97,90.3,5-year profit growth of 90% a year
 POLYCAB.NS,normal,35.5,22.4,8.59,22.79,24.3,,20.18,Screener industry,75.91674925668978,1.4609053497942386,,,Stretched vs peers,False,2026-11-23
 MAHABANK.NS,lender,9.37,17.82,2.03,22.75,65.15,,,lenders (P/B per ROE point),-26.822560159280496,,,0.08923076923076922,Cheap vs peers,False,2026-11-23
 MONARCH.NS,normal,13.81,9.22,2.5,26.11,45.56,,17.08,Screener industry,-19.145199063231843,0.34525,,,Fair vs peers,False,2026-11-23
-SOLARINDS.NS,normal,73.26,45.7,21.63,32.18,44.6,"Screener's industry P/E is essentially this stock's own (its group is just or mostly this company): no real comparison, add a peers.csv entry",,-,,,,,Not valued,False,2026-11-23
+SOLARINDS.NS,normal,73.26,45.7,21.63,32.18,44.6,"Peers not found in the export: KELTEC; Your peer list has too few valid peers in the export; Screener's industry P/E is essentially this stock's own (its group is just or mostly this company): no real comparison, add a peers.csv entry",,your peers (2 valid),,,,,Not valued,True,2026-11-23
 MACPOWER.NS,normal,47.3,29.63,10.33,21.02,41.89,,30.6,Screener industry,54.575163398692794,1.1824999999999999,,,Stretched vs peers,False,2026-11-23
 TIPSMUSIC.NS,normal,45.17,33.24,31.75,84.6,37.28,,59.96,Screener industry,-24.666444296197465,1.2116416309012876,,,Cheap vs peers,False,2026-11-23
 TRAVELFOOD.NS,normal,27.89,16.09,9.25,36.13,53.93,,85.3,Screener industry,-67.30363423212192,0.69725,,,Cheap vs peers,False,2026-11-23
@@ -67,7 +67,7 @@ AUTOAXLES.NS,cyclical,12.96,7.77,2.32,17.49,46.35,"Cyclical: P/E unreliable, jud
 LLOYDSME.NS,cyclical,18.23,12.66,5.91,37.72,678.57,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
 INDOTECH.NS,normal,24.46,16.45,5.94,26.42,71.3,5-year profit growth of 71% a year comes from a low base: PEG not shown,29.96,Screener industry,-18.35781041388518,,,,Fair vs peers,False,2026-11-23
 ECOSMOBLTY.NS,normal,11.34,6.19,2.49,28.44,132.8,5-year profit growth of 133% a year comes from a low base: PEG not shown,26.64,Screener industry,-57.432432432432435,,,,Cheap vs peers,False,2026-11-23
-AJAXENGG.NS,normal,29.39,21.11,4.73,22.81,18.92,"Screener's industry P/E is essentially this stock's own (its group is just or mostly this company): no real comparison, add a peers.csv entry",,-,,,,,Not valued,False,2026-11-23
+AJAXENGG.NS,normal,29.39,21.11,4.73,22.81,18.92,Peers not found in the export: GUJAPOLLO,21.92,your peers (3 valid),34.07846715328466,1.5533826638477801,,,Rich vs peers,True,2026-11-23
 BLS.NS,normal,12.67,8.43,3.21,32.63,68.24,5-year profit growth of 68% a year comes from a low base: PEG not shown,26.61,Screener industry,-52.38632093198046,,,,Cheap vs peers,False,2026-11-23
 RUBICON.NS,normal,85.24,54.28,19.48,27.47,51.95,Premium over 100%: check the peer group,32.48,Screener industry,162.4384236453202,2.131,,,Stretched vs peers,False,2026-11-23
 EIHAHOTELS.NS,normal,19.55,12.62,3.01,17.8,43.83,,27.32,Screener industry,-28.440702781844795,0.48875,,,Cheap vs peers,False,2026-11-23
@@ -97,7 +97,7 @@ TATACAP.NS,lender,24.33,15.66,3.02,13.25,34.06,,,lenders (P/B per ROE point),86.
 JSLL.NS,normal,18.69,11.08,7.75,49.35,84.53,5-year profit growth of 85% a year comes from a low base: PEG not shown,,-,,,,,Not valued,False,2026-11-23
 ANANDRATHI.NS,normal,86.19,60.77,29.83,42.24,54.69,,45.69,Screener industry,88.64084044648719,2.15475,,,Stretched vs peers,False,2026-11-23
 GRSE.NS,normal,28.24,17.12,8.05,27.67,36.07,,71.78,Screener industry,-60.65756478127613,0.782922095924591,,,Cheap vs peers,False,2026-11-23
-AJANTPHARM.NS,normal,32.78,22.01,8.56,25.21,11.62,"Screener's industry P/E is essentially this stock's own (its group is just or mostly this company): no real comparison, add a peers.csv entry",,-,,,,,Not valued,False,2026-11-23
+AJANTPHARM.NS,normal,32.78,22.01,8.56,25.21,11.62,,34.5,your peers (8 valid),-4.985507246376808,2.8209982788296046,,,Fair vs peers,True,2026-11-23
 BLUEJET.NS,normal,34.1,22.7,4.23,23.81,11.71,,32.76,Screener industry,4.090354090354098,2.9120409906063194,,,Fair vs peers,False,2026-11-23
 HEXT.NS,normal,19.34,11.63,4.43,23.72,18.49,,18.38,Screener industry,5.223068552774768,1.0459707950243375,,,Fair vs peers,False,2026-11-23
 DLINKINDIA.NS,normal,13.07,9.06,3.1,19.92,23.39,,18.07,Screener industry,-27.67017155506364,0.5587858058999573,,,Cheap vs peers,False,2026-11-23
@@ -121,7 +121,7 @@ CGCL.NS,lender,17.04,12.41,2.83,12.62,39.93,,,lenders (P/B per ROE point),83.903
 SHILCTECH.NS,normal,28.06,20.04,6.6,46.07,95.57,5-year profit growth of 96% a year comes from a low base: PEG not shown,21.17,Screener industry,32.546055739253646,,,,Rich vs peers,False,2026-11-23
 HINDZINC.NS,cyclical,10.88,7.08,7.51,68.75,12.13,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
 INDRAMEDCO.NS,normal,16.98,9.94,4.01,28.7,132.01,5-year profit growth of 132% a year comes from a low base: PEG not shown,50.8,Screener industry,-66.5748031496063,,,,Cheap vs peers,False,2026-11-23
-EIEL.NS,normal,16.69,9.72,2.21,23.99,85.04,"Screener's industry P/E is essentially this stock's own (its group is just or mostly this company): no real comparison, add a peers.csv entry",,-,,,,,Not valued,False,2026-11-23
+EIEL.NS,normal,16.69,9.72,2.21,23.99,85.04,5-year profit growth of 85% a year comes from a low base: PEG not shown,16.69,Screener industry,0.0,,,,Fair vs peers,False,2026-11-23
 ADVANCE.NS,cyclical,16.99,10.52,2.21,24.03,31.27,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
 PRECWIRE.NS,normal,37.93,21.73,7.07,18.63,31.38,Premium over 100%: check the peer group,14.17,Screener industry,167.67819336626678,1.208731676226896,,,Stretched vs peers,False,2026-11-23
 SMLMAH.NS,normal,61.27,33.82,13.65,38.16,26.15,Premium over 100%: check the peer group,24.18,Screener industry,153.39123242349052,2.3430210325047804,,,Stretched vs peers,False,2026-11-23
@@ -198,7 +198,7 @@ GRWRHITECH.NS,normal,42.91,28.98,6.32,13.08,22.03,Premium over 100%: check the p
 SSWL.NS,cyclical,25.38,12.55,4.02,14.55,32.68,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
 BHARATSE.NS,cyclical,24.1,11.72,5.12,18.35,56.67,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
 RATEGAIN.NS,normal,28.14,14.72,3.62,12.74,54.88,,18.1,Screener industry,55.469613259668506,0.7035,,,Stretched vs peers,False,2026-11-23
-INNOVACAP.NS,normal,32.98,20.48,4.72,14.68,32.48,"Screener's industry P/E is essentially this stock's own (its group is just or mostly this company): no real comparison, add a peers.csv entry",,-,,,,,Not valued,False,2026-11-23
+INNOVACAP.NS,normal,32.98,20.48,4.72,14.68,32.48,,32.76,Screener industry,0.6715506715506692,1.0153940886699508,,,Fair vs peers,False,2026-11-23
 GILLETTE.NS,normal,33.85,22.4,21.53,49.03,23.2,,34.24,Screener industry,-1.139018691588789,1.459051724137931,,,Fair vs peers,False,2026-11-23
 SIGMA.NS,normal,13.75,9.94,4.66,41.89,50.25,,20.42,Screener industry,-32.66405484818805,0.34375,,,Cheap vs peers,False,2026-11-23
 ANTHEM.NS,normal,85.23,53.04,16.45,21.21,17.48,,49.29,Screener industry,72.91539866098601,4.875858123569794,,,Stretched vs peers,False,2026-11-23
