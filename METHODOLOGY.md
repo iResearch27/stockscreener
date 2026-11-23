@@ -578,3 +578,7 @@ Look for lines starting `Traceback`, and for `Skipping` lines that name dropped 
 - **4 Valuation n/a:** cyclicals, insurers and unvalued stocks.
 
 The email shows what joined a tier or dropped off since the last run and warns when any input is more than 10 days old. `results/shortlist.csv` holds all scored stocks with their tier. Evidence "Net profit only (Screener)" and "EPS only (Yahoo)" is weaker than "EBIT-graded".
+
+## Universe screen (stage 1, weekly)
+
+`universe_screen.py` reads `universe.txt` (NSE symbols with `.NS`) and downloads prices for every stock. A stock is eligible when its median daily traded value (close x volume, last 20 sessions) is at least Rs 25 lakh, the price is at least Rs 20 and there are 210+ sessions of history. Eligible stocks get a momentum score: the percentile rank, among eligible stocks, of the 1-, 3- and 6-month returns (weights 25/45/30). The email shows how many stocks survive at several liquidity floors, so the floor can be set from data, plus the top 30 by momentum. Everything is saved in `results/universe_prices.csv`. If fewer than 85% of tickers download, the old file is kept and a warning is emailed. This is a price-only screen: it says nothing about quality or valuation.
