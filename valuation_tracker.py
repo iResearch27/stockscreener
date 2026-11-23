@@ -167,6 +167,7 @@ def peer_median_pe(peer_list, sc):
 # ============================================================
 # VALUATION
 # ============================================================
+LOW_ROE_NOTE = "ROE under 8%: weak returns, so the valuation ratio can mislead"
 IND_PE_COUNTS = {}   # how many export rows share each Screener industry P/E; a value held by one stock is that stock itself
 
 
@@ -187,6 +188,8 @@ def value_stock(t, x, stype, peer_list, sc, lender_ref):
         return r
     if stype == "lender":
         pb, roe = r["pb"], r["roe3"]
+        if roe is not None and not np.isnan(roe) and roe < 8:
+            r["notes"].append(LOW_ROE_NOTE)
         if pb and roe and not np.isnan(pb) and not np.isnan(roe) and roe > 0:
             r["pb_per_roe"] = pb / roe
             ref = lender_ref
@@ -250,7 +253,7 @@ def value_stock(t, x, stype, peer_list, sc, lender_ref):
                           if peer_list else "Premium over 100%: check the peer group")
     roe = r["roe3"]
     if roe is not None and not np.isnan(roe) and roe < 8:
-        r["notes"].append("ROE under 8%: weak returns on capital, so the P/E can overstate how expensive it is (and a low P/E can mislead)")
+        r["notes"].append(LOW_ROE_NOTE)
     if not np.isnan(r["hist_prem"]):
         if r["hist_prem"] >= HIST_RICH_PCT:
             r["notes"].append(f"{r['hist_prem']:+.0f}% above own {r['hist_yrs']}-year P/E")
