@@ -386,6 +386,10 @@ Stocks are matched by the symbol inside the company link in the .xlsx file (CSV 
 with Yahoo's latest quarter within 25% (not checked for lenders). The email shows which export was used and its date. Export once after most companies have reported
 (late Nov, mid Feb, mid May, mid Aug) and commit it; the daily tracker keeps using the same file until you replace it.
 
+**Label rules tightened (Nov 23, second run):** **Muted** now needs a known trend above the SMA200 and a first-day reaction under 8% (a big jump that faded, such as HEG, is not muted).
+When the result date is only estimated from the volume spike, no price label (Sold on good news, Lagging, Muted, Ran before results) is given; the row says "Date estimated: price labels withheld",
+because the labels depend on the date being right.
+
 **Limits:** yearly comparison needs 5 quarters of data and Yahoo sometimes gives only 4, so those stocks get the sequential view only. EBITDA is missing
 for some companies, and estimated result dates can be a day off or catch another volume event. A strong quarter can come from one-off gains and does not make a strong stock, so check the
 Quality tracker and the company's own results. Thresholds are starting values, not backtested.

@@ -65,6 +65,7 @@ CRASH_NI_PCT = -70.0             # net profit down this much while operating pro
 # Price reaction
 REACTION_DAYS_AFTER = 1          # reaction = close one trading day after the result date vs the close before it
 MUTED_MAX_DRIFT_PCT = 5.0        # "muted" = rose less than this since the result
+MUTED_MAX_REACTION_PCT = 8.0     # ...and the first-day reaction was also below this (a big jump that faded is not muted)
 SOLD_ON_NEWS_PCT = -3.0          # fell more than this after strong results
 RUNUP_DAYS = 20
 RUNUP_PCT = 10.0                 # "already ran" = up this much in the 20 trading days before results
@@ -419,12 +420,16 @@ def build_universe(rows, data):
                   "reaction": np.nan, "drift": np.nan, "runup": np.nan, "reaction_pending": False})
         r["flag"] = ""
         if r["reported"] and r["quality"] in ("Strong", "Good"):
-            if not np.isnan(r["reaction"]) and r["reaction"] <= SOLD_ON_NEWS_PCT:
+            if r["date_est"]:
+                # Price-reaction labels depend on the result date; an estimated date is not reliable enough to label a stock
+                r["flag"] = "Date estimated: price labels withheld"
+            elif not np.isnan(r["reaction"]) and r["reaction"] <= SOLD_ON_NEWS_PCT:
                 r["flag"] = "Sold on good news"
             elif r["above_sma200"] is True and not np.isnan(r["drift"]) and r["drift"] <= LAGGING_DRIFT_PCT:
                 r["flag"] = "Lagging"
-            elif r["above_sma200"] is not False and not np.isnan(r["drift"]) and r["drift"] < MUTED_MAX_DRIFT_PCT \
-                    and r["drift"] > SOLD_ON_NEWS_PCT and not r["reaction_pending"]:
+            elif r["above_sma200"] is True and not np.isnan(r["drift"]) and not np.isnan(r["reaction"]) \
+                    and r["drift"] < MUTED_MAX_DRIFT_PCT and r["drift"] > SOLD_ON_NEWS_PCT \
+                    and r["reaction"] < MUTED_MAX_REACTION_PCT and not r["reaction_pending"]:
                 r["flag"] = "Muted"
             elif not np.isnan(r["runup"]) and r["runup"] >= RUNUP_PCT:
                 r["flag"] = "Ran before results"
@@ -569,7 +574,7 @@ same quarter last year, not against analyst estimates.</p>{warn_html}
 <tr><td style="padding:3px 8px;"><b>Book value YoY</b></td><td style="padding:3px 8px;">Growth in book value per share (equity if share count is missing) over the year, from Yahoo's latest balance sheet, which can be older than the quarter. The key growth measure for banks and lenders.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Declared</b></td><td style="padding:3px 8px;">Result date from Yahoo. A date with "~" is estimated from the volume spike and may be a day off.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Reaction (1d)</b></td><td style="padding:3px 8px;">Price change from the close before the result date to the close one trading day after it. Results announced after market hours show up the next day, so one day catches both cases.</td></tr>
-<tr><td style="padding:3px 8px;"><b>Note</b></td><td style="padding:3px 8px;"><b>Muted</b>: good results, little price move, trend intact. <b>Sold on good news</b>: fell 3%+ in the day after good results. <b>Sold on good news</b> (checked first) beats the others. <b>Lagging</b>: good results, down 3%+ since, still above the SMA200. <b>Ran before results</b>: up 10%+ in the 20 days before the result. Profit notes flag net profit moving very differently from operating profit (tax rate or one-off items): check the company's own results.</td></tr>
+<tr><td style="padding:3px 8px;"><b>Note</b></td><td style="padding:3px 8px;"><b>Muted</b>: good results, little price move (first-day reaction under 8%, since-result move between -3% and +5%), trend known and above the SMA200. <b>Sold on good news</b>: fell 3%+ in the day after good results; checked first. <b>Date estimated</b>: the result date came from the volume spike, not Yahoo, so no price label is given. <b>Lagging</b>: good results, down 3%+ since, still above the SMA200. <b>Ran before results</b>: up 10%+ in the 20 days before the result. Profit notes flag net profit moving very differently from operating profit (tax rate or one-off items): check the company's own results.</td></tr>
 </table>
 <p style="font-size:12px;color:#a00;"><b>Limits:</b> a strong quarter does not mean a strong stock. Check the Quality tracker, and read the company's own results (one-off gains can inflate profit).
 Yahoo's data can be late or wrong, and its results calendar is missing for some Indian stocks (dates then estimated, marked "~"). EBITDA is missing for some companies. Yearly comparisons need 5 quarters of history; stocks without them appear in the sequential table or the not-analysed lists.</p>
