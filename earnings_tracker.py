@@ -320,6 +320,23 @@ def estimate_result_date(df, q_end):
         return pd.NaT
 
 
+def fetch_name(t):
+    try:
+        info = yf.Ticker(t).info or {}
+        return t, [info.get("longName"), info.get("shortName")]
+    except Exception:
+        return t, []
+
+
+def fetch_names(tickers):
+    """Yahoo company names, used to match stocks to a Screener export that has no company links."""
+    out = {}
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
+        for t, names in ex.map(fetch_name, tickers):
+            out[t] = names
+    return out
+
+
 def apply_screener(rows, sc):
     """Use Screener.in's year-on-year quarterly growth where Yahoo has none, and cross-check Yahoo where it does.
 
@@ -333,6 +350,12 @@ def apply_screener(rows, sc):
         if not r.get("has_data") or r["ticker"] not in sc.index:
             continue
         x = sc.loc[r["ticker"]]
+        if r.get("is_lender") and sc.attrs.get("by_name"):
+            # Matched by name and a lender's 'sales' are not comparable, so confirm with net profit instead
+            yn, sn = r.get("ni", np.nan) / 1e7, x.get("np_cr", np.nan)
+            if np.isnan(yn) or np.isnan(sn) or sn == 0 or not (0.65 <= yn / sn <= 1.35):
+                r["src_note"] = "Screener quarter does not match Yahoo's: ignored"
+                continue
         ys, ss = r.get("rev", np.nan), x.get("sales_cr", np.nan)
         if not r.get("is_lender") and not np.isnan(ys) and not np.isnan(ss) and ss > 0:
             if abs(ys / 1e7 / ss - 1) > SCREENER_ALIGN_TOL:
@@ -607,7 +630,12 @@ def main():
     if si is None:
         sc, sc_info = pd.DataFrame(), "screener_import.py is not in the repo"
     else:
-        sc, sc_info = si.load_screener()
+        sc, sc_info = si.load_screener(allow_names=True)
+        if len(sc) and sc.attrs.get("by_name"):
+            # No company links in the export: match by Yahoo company name (checked against the quarter's sales or profit below)
+            names = fetch_names([r["ticker"] for r in rows if r.get("has_data")])
+            sc, rep_ = si.match_by_name(sc, names, si.load_name_map())
+            sc_info += "; " + si.summarise_match(rep_)
     print("Screener.in export:", sc_info)
     rows, n_fill, n_flag = apply_screener(rows, sc)
     if len(sc):

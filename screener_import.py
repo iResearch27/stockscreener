@@ -120,6 +120,32 @@ def _abbrev_score(sc_name, yahoo_name):
     return None if skips > 1 else 1.0 - 0.2 * skips
 
 
+def load_name_map(path="name_map.csv"):
+    """Optional name_map.csv (columns: ticker, screener_name) to fix names that do not match automatically."""
+    if not os.path.exists(path):
+        return {}
+    df = pd.read_csv(path, comment="#", dtype=str).fillna("")
+    df.columns = [c.strip().lower() for c in df.columns]
+    if "ticker" not in df or "screener_name" not in df:
+        return {}
+    return {r["ticker"].strip().upper(): r["screener_name"].strip()
+            for _, r in df.iterrows() if r["ticker"].strip() and r["screener_name"].strip()}
+
+
+def summarise_match(rep_):
+    """One line for the email/log saying how the name matching went."""
+    s_ = f"matched by company name: {rep_['exact']} exact, {len(rep_['fuzzy'])} close"
+    if rep_["fuzzy"]:
+        s_ += " (" + "; ".join(f"{t.replace('.NS', '')}={nm}" for t, nm, _ in rep_["fuzzy"][:15]) + ")"
+    if rep_["conflicts"]:
+        s_ += (f", {len(rep_['conflicts'])} left out because two stocks claimed the same row ("
+               + ", ".join(t.replace(".NS", "") for t, _ in rep_["conflicts"]) + ": add to name_map.csv)")
+    s_ += f", {len(rep_['unmatched'])} not found"
+    if rep_["unmatched"]:
+        s_ += " (" + ", ".join(t.replace(".NS", "") for t in rep_["unmatched"][:25]) + ")"
+    return s_
+
+
 def match_by_name(sc, ticker_names, overrides=None, cutoff=0.88):
     """For exports without links: attach NSE tickers by company name.
     ticker_names: {ticker: [names, e.g. Yahoo long and short name]}. overrides: {ticker: Screener name}.
@@ -184,6 +210,7 @@ def match_by_name(sc, ticker_names, overrides=None, cutoff=0.88):
     fuzzy = [(t, sc.loc[k, "name"], sco) for t, (k, kind, sco) in claims.items() if kind == "close"]
     exact_n = sum(1 for v in claims.values() if v[1] == "exact")
     out = pd.DataFrame.from_dict(rows, orient="index") if rows else pd.DataFrame()
+    out.attrs["by_name"] = True
     return out, {"exact": exact_n, "fuzzy": fuzzy, "unmatched": unmatched, "conflicts": conflicts}
 
 
