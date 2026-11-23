@@ -373,6 +373,12 @@ biggest volume spike (at least 2x the prior 20-day median) between 15 and 80 day
 **"Reported" test:** the current cycle is the most recent quarter-end among stocks that reported within the last 130 days. A stock counts as
 reported if its latest quarter ends within 20 days of that.
 
+**Fixes of Nov 23 (after the first real run):** stocks with sales but no profit figures are no longer called Mixed; they go to the limited-history table. That table now also shows
+**EPS YoY** from Yahoo's earnings history (reported EPS this quarter vs about a year earlier), the only year-on-year view available for stocks whose income statement is short.
+Estimated result dates are confined to 7 to 45 days after quarter-end (60 days after March), the SEBI deadlines. **Sold on good news** (1-day fall of 3%+) is checked before Muted, and a
+new **Lagging** list shows good results with the price down 3%+ since but still above the SMA200. Book value changes beyond 40% are flagged as probable splits, bonus issues or demergers.
+Tickers whose price download failed are retried one at a time.
+
 **Limits:** yearly comparison needs 5 quarters of data and Yahoo sometimes gives only 4, so those stocks get the sequential view only. EBITDA is missing
 for some companies, and estimated result dates can be a day off or catch another volume event. A strong quarter can come from one-off gains and does not make a strong stock, so check the
 Quality tracker and the company's own results. Thresholds are starting values, not backtested.
