@@ -147,8 +147,22 @@ def flatten_columns(df):
     return df
 
 
-def fetch_data(tickers, batch_size=BATCH_SIZE):
-    data = {}
+def _use_private_yf_cache():
+    """yfinance keeps a small SQLite cache; parallel downloads can leave it locked ('database is locked'),
+    which silently drops tickers. A private cache folder per run avoids that."""
+    try:
+        import tempfile
+        yf.set_tz_cache_location(tempfile.mkdtemp(prefix="yfcache_"))
+    except Exception:
+        pass
+
+
+def fetch_data(tickers, batch_size=BATCH_SIZE, min_rows=None):
+    """Daily price data per ticker. Tickers that fail in a batch are retried one at a time, without threads.
+    min_rows: history required to keep a ticker (default MIN_ROWS)."""
+    need = min_rows or MIN_ROWS
+    _use_private_yf_cache()
+    data, failed = {}, []
     for i in range(0, len(tickers), batch_size):
         batch = tickers[i:i + batch_size]
         print(f"Fetching batch {i // batch_size + 1} ({len(batch)} tickers)...")
@@ -167,6 +181,7 @@ def fetch_data(tickers, batch_size=BATCH_SIZE):
 
         if df is None:
             print(f"  Skipping batch after retries: {batch}")
+            failed.extend(batch)
             continue
 
         for t in batch:
@@ -174,14 +189,36 @@ def fetch_data(tickers, batch_size=BATCH_SIZE):
                 tdf = flatten_columns(df) if len(batch) == 1 else df[t]
                 # Drop rows with no Close (partial/unfinalized latest-day rows would give "nan").
                 tdf = tdf.dropna(subset=["Close"])
-                if len(tdf) < MIN_ROWS:
-                    print(f"  Skipping {t}: insufficient history ({len(tdf)} rows)")
+                if len(tdf) == 0:
+                    failed.append(t)          # empty download: usually a transient error, retry below
+                    continue
+                if len(tdf) < need:
+                    print(f"  Skipping {t}: insufficient history ({len(tdf)} rows, need {need})")
                     continue
                 data[t] = tdf
             except Exception as e:
                 print(f"  Skipping {t}: {e}")
+                failed.append(t)
 
         time.sleep(1)
+
+    if failed:
+        print(f"Retrying {len(failed)} failed tickers one at a time: {failed}")
+        for t in failed:
+            for attempt in range(3):
+                try:
+                    tdf = yf.download(t, period=LOOKBACK_PERIOD, interval="1d", auto_adjust=True,
+                                      threads=False, progress=False)
+                    tdf = flatten_columns(tdf).dropna(subset=["Close"])
+                    if len(tdf) >= need:
+                        data[t] = tdf
+                        print(f"  Recovered {t} ({len(tdf)} rows)")
+                    else:
+                        print(f"  {t}: only {len(tdf)} rows after retry, need {need}")
+                    break
+                except Exception as e:
+                    print(f"  Retry {attempt + 1} failed for {t}: {e}")
+                    time.sleep(2)
     return data
 
 

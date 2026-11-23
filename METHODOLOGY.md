@@ -377,7 +377,7 @@ reported if its latest quarter ends within 20 days of that.
 **EPS YoY** from Yahoo's earnings history (reported EPS this quarter vs about a year earlier), the only year-on-year view available for stocks whose income statement is short.
 Estimated result dates are confined to 7 to 45 days after quarter-end (60 days after March), the SEBI deadlines. **Sold on good news** (1-day fall of 3%+) is checked before Muted, and a
 new **Lagging** list shows good results with the price down 3%+ since but still above the SMA200. Book value changes beyond 40% are flagged as probable splits, bonus issues or demergers.
-Tickers whose price download failed are retried one at a time.
+Tickers whose price download failed are retried one at a time, without threads (the shared downloader in `momentum_tracker.py` now uses a private yfinance cache, because a locked cache silently dropped Kotak Bank). The Earnings tracker needs only 40 days of prices (the trend shows "-" below 210), so recently re-listed stocks are no longer dropped. Estimated result dates start 21 days after quarter-end. The limited-history table is sorted by EPS growth and tags "EPS up, trend intact" (EPS +15% or more, above the SMA200).
 
 **Limits:** yearly comparison needs 5 quarters of data and Yahoo sometimes gives only 4, so those stocks get the sequential view only. EBITDA is missing
 for some companies, and estimated result dates can be a day off or catch another volume event. A strong quarter can come from one-off gains and does not make a strong stock, so check the

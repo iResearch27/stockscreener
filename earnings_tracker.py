@@ -64,10 +64,11 @@ MUTED_MAX_DRIFT_PCT = 5.0        # "muted" = rose less than this since the resul
 SOLD_ON_NEWS_PCT = -3.0          # fell more than this after strong results
 RUNUP_DAYS = 20
 RUNUP_PCT = 10.0                 # "already ran" = up this much in the 20 trading days before results
-MIN_ROWS = 210                   # price rows needed for SMA200
+MIN_ROWS = 210                   # price rows needed for SMA200 (trend shows "-" below this)
+MIN_PRICE_ROWS = 40              # price rows needed at all (reaction and drift only)
 
 # Estimating a missing result date from the volume spike
-EST_WINDOW_START = 7             # days after quarter-end to start looking
+EST_WINDOW_START = 21            # days after quarter-end to start looking (few mid/small caps report earlier)
 EST_WINDOW_END = 46              # SEBI deadline is 45 days after a quarter-end (60 days after March: see estimate_result_date)
 BV_CHECK_PCT = 40.0              # book value change beyond this is probably a split/bonus/demerger, not real
 LAGGING_DRIFT_PCT = -3.0         # good results, trend intact, but price is down this much since the result
@@ -382,7 +383,7 @@ def build_universe(rows, data):
                 r["flag"] = "Ran before results"
         r["data_note"] = "; ".join(x for x in [
             "No price data" if np.isnan(r["price"]) else "",
-            "Book value change looks like a split/bonus/demerger: check" if not np.isnan(r["bv_yoy"]) and abs(r["bv_yoy"]) > BV_CHECK_PCT else "",
+            "Book value change over 40%: check (corporate action, equity raise or data issue)" if not np.isnan(r["bv_yoy"]) and abs(r["bv_yoy"]) > BV_CHECK_PCT else "",
         ] if x)
         out.append(r)
     return pd.DataFrame(out), cycle_end
@@ -494,14 +495,16 @@ same quarter last year, not against analyst estimates.</p>{warn_html}
     if len(limited):
         h += f"<h3>Limited history: EPS and sequential view only ({len(limited)})</h3>"
         h += ('<p style="font-size:11px;color:#555;">Yahoo has no year-ago quarter in its income statement for these. <b>EPS YoY</b> comes from its earnings history '
-              "(blank where unavailable) and is the better guide. Quarter-on-quarter figures are seasonal and are not graded: treat them as pointers only.</p>")
+              "(blank where unavailable) and is the better guide, but Yahoo's EPS can mix standalone and consolidated figures or include one-offs, so check extreme values. Sorted by EPS YoY. Quarter-on-quarter figures are seasonal and are not graded: treat them as pointers only.</p>")
         h += tbl(["Ticker", "Quarter", "Sales YoY", "EPS YoY", "Sales QoQ", "Operating profit QoQ", "Net profit QoQ", "Declared",
                   "Reaction (1d)", "Since result", "Trend", "Note"],
                  [[r["ticker"].replace(".NS", ""), date_s(r["q_end"]), f(r["rev_yoy"], 0, "%", True), f(r["eps_yoy"], 0, "%", True), f(r["rev_qoq"], 0, "%", True),
                    f(r["op_qoq"], 0, "%", True), f(r["ni_qoq"], 0, "%", True), date_s(r["result_date"], r["date_est"]),
                    "pending" if r["reaction_pending"] else f(r["reaction"], 1, "%", True), f(r["drift"], 1, "%", True),
-                   trend_s(r), r["data_note"] or "-"]
-                  for _, r in limited.iterrows()])
+                   trend_s(r), "; ".join(x for x in [
+                       "EPS up, trend intact" if not np.isnan(r["eps_yoy"]) and r["eps_yoy"] >= EPS_STRONG_PCT and r["above_sma200"] is True else "",
+                       r["data_note"]] if x) or "-"]
+                  for _, r in limited.sort_values("eps_yoy", ascending=False, na_position="last").iterrows()])
     for reason, names in not_analysed.items():
         if names:
             h += (f'<h3>Not analysed: {reason} ({len(names)})</h3><p style="font-size:12px;">'
@@ -538,14 +541,8 @@ def main():
         print("Watchlist is empty. Exiting.")
         return
 
-    data = m.fetch_data(tickers)
-    missing = [t for t in tickers if t not in data]
-    if missing:                                   # a failed batch can drop good tickers: retry them one by one
-        print(f"Retrying price data for {len(missing)} tickers one at a time")
-        try:
-            data.update(m.fetch_data(missing, batch_size=1))
-        except Exception as e:
-            print(f"Retry failed: {e}")
+    # Earnings only needs about 40 days of prices for the reaction; the SMA200 is skipped when history is short.
+    data = m.fetch_data(tickers, min_rows=MIN_PRICE_ROWS)
     print(f"Price data for {len(data)}/{len(tickers)} tickers")
     rows = fetch_all_results(tickers)
     n_with = sum(1 for r in rows if r.get("has_data"))
