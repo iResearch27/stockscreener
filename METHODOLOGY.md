@@ -329,14 +329,25 @@ restated ones.
 **Result quality** is judged from actual growth against the same quarter last year (from Yahoo's quarterly statements), not against
 analyst estimates, because Yahoo has estimates for few Indian stocks.
 
+**Operating profit, not net profit, decides the grade.** Net profit moves with the tax rate and one-off items, so the grade uses EBIT growth
+(pre-tax profit for banks and lenders, which have no operating income). EBITDA, EBIT, pre-tax profit, net profit and book value growth
+are all shown in the table. Net profit only has to be not down for a Strong or Good grade.
+
+**Book value** growth (per share when the share count is available, otherwise total equity) is shown for every stock and is required for a
+bank or lender to be graded Strong (up 10%+). It comes from Yahoo's latest balance sheet, which can be older than the income statement.
+
 | Result | Rule |
 |---|---|
-| Strong | Sales up 10%+ and profit up 15%+, operating margin not down more than 100 bps (skipped when the margin is unavailable, as for banks), or the company turned profitable with sales up 5%+ |
-| Good | Sales up 5%+ and profit up 5%+ |
-| Weak | Profit or sales fell, or the company made a loss |
-| Mixed | Everything else (not listed) |
+| Strong | Sales up 10%+, operating profit up 15%+, net profit not down, EBIT margin not down more than 100 bps (skipped for banks and lenders, which instead need book value up 10%+), or the company turned profitable with sales up 5%+ |
+| Good | Sales up 5%+, operating profit up 5%+, net profit not down |
+| Weak | Operating profit fell, or the company made a loss |
+| Mixed | Everything else, including profit up while sales fell. Listed in its own table |
 
-**Price context** uses the result date from Yahoo's earnings calendar:
+A **profit note** appears when net profit moved 40+ points differently from operating profit (tax or other income, or a one-off), or net profit
+fell 70%+ while operations did not. Check the company's own results for those.
+
+**Price context** uses the result date from Yahoo's earnings calendar. When Yahoo has no date, it is estimated as the trading day before the
+biggest volume spike (at least 2x the prior 20-day median) between 15 and 80 days after quarter-end, and shown with "~":
 - **Reaction (1d):** close one trading day after the result date versus the close before it.
 - **Since result:** latest close versus the close before the result date.
 - **Run-up before:** gain in the 20 trading days before the result.
@@ -346,14 +357,16 @@ analyst estimates, because Yahoo has estimates for few Indian stocks.
 1. Results due in the next 14 days, with the 1-month return and last quarter's quality. A stock that already ran up needs a better-than-expected result to rise further.
 2. Strong or good results with a **muted** price reaction: price up less than 5% and down less than 3% since results, and not below the SMA200. This is a research list based on the idea of post-earnings drift (prices sometimes keep adjusting for weeks after good news). It is not a buy signal, and the first step is to find out why the market is not reacting.
 3. All strong and good results, with notes **Sold on good news** (down 3%+ after the result) and **Ran before results** (up 10%+ in the prior 20 days).
-4. Weak results.
-5. Stocks that have not yet reported the latest quarter.
+4. Weak results, then Mixed results.
+5. Limited history: stocks with no year-ago quarter are shown with sequential (quarter-on-quarter) changes, which are seasonal and not graded.
+6. Not analysed lists (no data from Yahoo; too little history), so coverage is always visible. The summary line gives the counts.
+7. Stocks that have not yet reported the latest quarter.
 
 **"Reported" test:** the current cycle is the most recent quarter-end among stocks that reported within the last 130 days. A stock counts as
 reported if its latest quarter ends within 20 days of that.
 
-**Limits:** yearly comparison needs 5 quarters of data and Yahoo sometimes gives only 4, so those stocks are left out. The results calendar is
-missing for some stocks, so reaction shows as "-". A strong quarter can come from one-off gains and does not make a strong stock, so check the
+**Limits:** yearly comparison needs 5 quarters of data and Yahoo sometimes gives only 4, so those stocks get the sequential view only. EBITDA is missing
+for some companies, and estimated result dates can be a day off or catch another volume event. A strong quarter can come from one-off gains and does not make a strong stock, so check the
 Quality tracker and the company's own results. Thresholds are starting values, not backtested.
 
 ---
