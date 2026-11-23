@@ -74,7 +74,7 @@ def build(prefix=""):
     j = q[["sector", "score", "grade", "flags"]].join(
         e.reindex(columns=["quality", "reported", "rev_yoy", "ebit_yoy", "ni_yoy", "turned_profit", "eps_yoy", "reaction", "drift",
                            "above_sma200", "flag", "src_note"]).rename(columns={"quality": "e_result"}), how="left"
-    ).join(v[["tag", "premium", "peg", "ev_ebitda", "pe", "own_peers"]], how="left")
+    ).join(v.reindex(columns=["tag", "premium", "peg", "ev_ebitda", "pe", "own_peers", "notes"]).rename(columns={"notes": "vnotes"}), how="left")
 
     def earn(r):
         res = r["e_result"]
@@ -111,6 +111,24 @@ def build(prefix=""):
     return j, warns
 
 
+def why_na(tag, note):
+    """Short reason a stock has no valuation tag, from the Valuation tracker's notes."""
+    n = str(note) if isinstance(note, str) else ""
+    if "Cyclical" in n or tag == "Cyclical (not tagged)":
+        return "Cyclical: P/E unreliable"
+    if "Insurer" in n:
+        return "Insurer: not valued here"
+    if "essentially this stock's own" in n:
+        return "No peer comparison: industry P/E is its own"
+    if "P/E missing" in n:
+        return "P/E missing, negative or above 100"
+    if "Too few lenders" in n or "P/B or ROE missing" in n:
+        return "Lender: no usable P/B and ROE"
+    if "too few valid peers" in n:
+        return "Peer list too small"
+    return n[:80] if n else "Not valued (reason not saved: re-run Valuation)"
+
+
 def tbl(rows, head):
     """Compact HTML (no per-cell styles) so the email stays under Gmail's 102 KB clipping limit."""
     th = "".join(f"<th align='left' bgcolor='#eeeeee'>{h}</th>" for h in head)
@@ -124,6 +142,8 @@ def tiers_html(j, universe=False, cap=None):
         head = ["Ticker", "Company", "6M return"] + head[2:]
     h = ""
     for t in TIERS:
+        na = t == TIERS[3]
+        hd = head + (["Why no valuation"] if na else [])
         sub = j[j["tier"] == t].sort_values("score", ascending=False)
         shown = sub.head(cap) if cap else sub
         h += f"<h3>{t} ({len(sub)})</h3><p style='font-size:12px;'>{TIER_TEXT[t]}</p>"
@@ -140,8 +160,8 @@ def tiers_html(j, universe=False, cap=None):
             lead = [i, str(r["name"])[:22], (pct_s(r["ret_6m"]) + (" (extended)" if str(r["extended"]) == "True" else ""))] if universe else [i, str(r["sector"])[:20]]
             rows.append(lead + [f'{r["grade"]} ({r["score"]:.0f})', r["earn"], r["evidence"], ni, pct_s(r["drift"], 1),
                          r["trend"], str(r["tag"]).replace(" vs peers", ""), prem, peg,
-                         f'<span style="color:#a00;">{fl}</span>' if fl != "none" else fl, note])
-        h += tbl(rows, head)
+                         f'<span style="color:#a00;">{fl}</span>' if fl != "none" else fl, note] + ([why_na(r["tag"], r["vnotes"])] if na else []))
+        h += tbl(rows, hd)
         if cap and len(sub) > cap:
             h += f"<p style='font-size:12px;'>{len(sub) - cap} more in the CSV.</p>"
     return h
