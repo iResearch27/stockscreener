@@ -407,7 +407,7 @@ Only stocks in both the export and the watchlist are valued. Runs Monday 8:00 AM
 **Method**
 - **Peer P/E:** the median P/E of the peers listed for that stock in `peers.csv` (peers with a negative P/E or above 100 ignored; at least 3 needed), otherwise Screener's industry P/E.
 - **Premium** = P/E / peer P/E - 1. Cheap: -20% or lower. Fair: up to +20%. Rich: up to +50%. Stretched: above +50%.
-- **PEG** = P/E / 5-year profit growth (growth capped at 40%; not shown below 5%). At or below 1 the premium is "backed by growth"; above 2.5 it is not. A cheap stock with low growth is noted as a possible value trap.
+- **PEG** = P/E / 5-year profit growth (growth capped at 40%; not shown below 5%, or above 60% a year, where the growth comes from a tiny starting profit and is not a reliable guide). At or below 1 the premium is "backed by growth"; above 2.5 it is not. A cheap stock with low growth is noted as a possible value trap.
 - **Own history:** if the export has a 3, 5 or 10-year historical P/E column, the premium to it is shown and noted when 25% above or 20% below.
 - **Lenders** (banks and NBFCs): judged on P/B divided by ROE against the median of lenders in the export, not on P/E.
 - **Cyclicals** (steel, cement, oil, metals, commodity chemicals, paper and similar, by Yahoo's industry wording): not tagged, because P/E is lowest at peak profits. EV/EBITDA and P/B are shown instead.

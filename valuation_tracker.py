@@ -6,7 +6,7 @@ compares its P/E with a PEER P/E and checks it against growth:
 
   * Peer P/E = the median P/E of the peers you list in peers.csv, or else Screener's own industry P/E (the "Ind PE" column).
   * Premium vs peers = P/E / peer P/E - 1.
-  * Growth check (PEG) = P/E divided by the 5-year profit growth rate (growth capped at 40%; n/a below 5%).
+  * Growth check (PEG) = P/E divided by the 5-year profit growth rate (growth capped at 40%; n/a below 5% or above 60%).
   * Own history: if the export has a historical P/E column (3, 5 or 10 year), the premium to the stock's own history is shown.
   * Banks and lenders are judged on P/B per point of ROE, against other lenders, because P/E and growth say little about them.
   * Cyclicals (steel, cement, oil, metals, chemicals...) are not tagged on P/E: their P/E is lowest at peak profits.
@@ -41,6 +41,7 @@ PE_MAX_VALID = 100.0          # a P/E above this (or negative) is ignored when t
 MIN_PEERS = 3                 # a peer median needs at least this many valid peers
 GROWTH_CAP = 40.0             # profit growth above this earns no extra credit in PEG
 GROWTH_MIN = 5.0              # below this, PEG is not meaningful
+GROWTH_LOW_BASE = 60.0        # above this, the 5-year growth comes from a tiny starting profit: PEG is not shown (same as Quality tracker)
 # Premium to peers (P/E / peer P/E - 1, in %)
 CHEAP_BELOW = -20.0
 FAIR_UP_TO = 20.0
@@ -191,16 +192,22 @@ def value_stock(t, x, stype, peer_list, sc, lender_ref):
             r["notes"].append("Your peer list has too few valid peers in the export")
     if np.isnan(r["peer_pe"]):
         ind = x.get("ind_pe", np.nan)
-        if valid_pe(ind) and IND_PE_COUNTS.get(round(float(ind), 1), 2) <= 1 and abs(r["pe"] / float(ind) - 1) < 0.03:
-            r["notes"].append("Screener's industry P/E is this stock's own (no real peers in its group): add a peers.csv entry")
-            return r
+        if valid_pe(ind):
+            gap = abs(r["pe"] / float(ind) - 1)
+            alone = IND_PE_COUNTS.get(round(float(ind), 2), 2) <= 1
+            if gap < 0.01 or (alone and gap < 0.03):
+                r["notes"].append("Screener's industry P/E is essentially this stock's own (its group is just or mostly this company): "
+                                  "no real comparison, add a peers.csv entry")
+                return r
         if valid_pe(ind):
             r["peer_pe"], r["peer_src"] = float(ind), "Screener industry"
     if not np.isnan(r["peer_pe"]):
         r["premium"] = (r["pe"] / r["peer_pe"] - 1) * 100
         r["tag"] = tag_from_premium(r["premium"])
     g = r["growth"]
-    if g is not None and not np.isnan(g) and g >= GROWTH_MIN:
+    if g is not None and not np.isnan(g) and g > GROWTH_LOW_BASE:
+        r["notes"].append(f"5-year profit growth of {g:.0f}% a year comes from a low base: PEG not shown")
+    elif g is not None and not np.isnan(g) and g >= GROWTH_MIN:
         r["peg"] = r["pe"] / min(g, GROWTH_CAP)
     elif g is not None and not np.isnan(g):
         r["notes"].append("Profit growth under 5% a year: PEG not meaningful")
@@ -209,7 +216,8 @@ def value_stock(t, x, stype, peer_list, sc, lender_ref):
         r["notes"].append("Premium backed by growth (PEG at or below 1)")
     if r["tag"] in ("Rich", "Stretched") and not np.isnan(r["peg"]) and r["peg"] > PEG_HIGH:
         r["notes"].append("Premium not backed by growth (PEG above 2.5)")
-    if r["tag"] == "Cheap vs peers" and (np.isnan(r["peg"])):
+    low_base = g is not None and not np.isnan(g) and g > GROWTH_LOW_BASE
+    if r["tag"] == "Cheap vs peers" and np.isnan(r["peg"]) and not low_base:
         r["notes"].append("Cheap but growth is low or unknown: possible value trap")
     if t in CONGLOMERATE_HINT and not peer_list:
         r["notes"].append("Conglomerate: industry P/E is a poor yardstick, add a peers.csv entry")
@@ -309,7 +317,7 @@ This says how much you pay for what a company earns. It is not a buy or sell sig
 <table style="border-collapse:collapse;font-size:12px;">
 <tr><td style="padding:3px 8px;"><b>Peer P/E</b></td><td style="padding:3px 8px;">Median P/E of the peers you list in peers.csv (peers with a negative P/E or above {PE_MAX_VALID:.0f} are ignored, at least {MIN_PEERS} needed), otherwise Screener's industry P/E.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Premium</b></td><td style="padding:3px 8px;">P/E against the peer P/E. Cheap: {CHEAP_BELOW:.0f}% or lower. Fair: up to +{FAIR_UP_TO:.0f}%. Rich: up to +{RICH_UP_TO:.0f}%. Stretched: above that.</td></tr>
-<tr><td style="padding:3px 8px;"><b>PEG</b></td><td style="padding:3px 8px;">P/E divided by 5-year profit growth (capped at {GROWTH_CAP:.0f}%; not shown below {GROWTH_MIN:.0f}%). At or below {PEG_GOOD:.0f} growth backs the price; above {PEG_HIGH} it does not.</td></tr>
+<tr><td style="padding:3px 8px;"><b>PEG</b></td><td style="padding:3px 8px;">P/E divided by 5-year profit growth (capped at {GROWTH_CAP:.0f}%; not shown below {GROWTH_MIN:.0f}% or above {GROWTH_LOW_BASE:.0f}%, where the growth comes from a tiny base). At or below {PEG_GOOD:.0f} growth backs the price; above {PEG_HIGH} it does not.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Lenders</b></td><td style="padding:3px 8px;">Banks and NBFCs are compared on P/B divided by ROE (a lender earning more on its equity can justify a higher P/B), against the median of lenders in the export{'' if np.isnan(lender_ref) else f' ({lender_ref:.2f})'}.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Cyclicals</b></td><td style="padding:3px 8px;">Steel, cement, oil, metals, chemicals and similar: P/E looks lowest at peak profits, so they are not tagged. Judge them on EV/EBITDA and P/B over the cycle.</td></tr>
 </table>
@@ -347,7 +355,7 @@ def main():
         notify_problem(f"The Screener.in export could not be used: {info}")
         return
     if "ind_pe" in sc.columns:
-        IND_PE_COUNTS.update(sc["ind_pe"].dropna().round(1).value_counts().to_dict())
+        IND_PE_COUNTS.update(sc["ind_pe"].dropna().round(2).value_counts().to_dict())
     peers, type_over = load_peers(PEERS_FILE)
     print(f"peers.csv: {len(peers)} peer groups, {len(type_over)} type overrides")
     types = None
