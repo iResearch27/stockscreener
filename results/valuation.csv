@@ -1,237 +1,242 @@
-ticker,type,pe,ev_ebitda,pb,roe3,growth,peer_pe,peer_src,premium,peg,hist_prem,pb_per_roe,tag,own_peers,run_date
-AXISBANK.NS,lender,14.58,18.17,1.92,15.64,29.65,,lenders (P/B per ROE point),-13.659228372989418,,,0.1227621483375959,Fair vs peers,False,2026-11-23
-ICICIBANK.NS,lender,19.51,19.57,3.01,17.36,23.98,,lenders (P/B per ROE point),21.94618559853234,,,0.17338709677419353,Rich vs peers,False,2026-11-23
-KOTAKBANK.NS,lender,23.65,20.22,2.66,13.73,14.13,,lenders (P/B per ROE point),36.25816784776135,,,0.1937363437727604,Rich vs peers,False,2026-11-23
-ACE.NS,normal,29.86,20.76,6.22,26.64,40.38,29.39,Screener industry,1.5991833957128332,0.7464999999999999,,,Fair vs peers,False,2026-11-23
-APTUS.NS,lender,9.35,8.91,1.75,18.77,28.71,,lenders (P/B per ROE point),-34.42697457624978,,,0.09323388385721897,Cheap vs peers,False,2026-11-23
-AAVAS.NS,lender,12.25,11.07,1.6,13.98,17.72,,lenders (P/B per ROE point),-19.505861454074534,,,0.11444921316165951,Fair vs peers,False,2026-11-23
-VBL.NS,normal,41.7,23.05,7.36,21.57,50.62,46.055,your peers (6 valid),-9.456085115622614,1.0425,,,Fair vs peers,True,2026-11-23
-SENCO.NS,normal,8.43,6.56,1.91,18.07,56.46,31.77,your peers (5 valid),-73.46553352219074,0.21075,,,Cheap vs peers,True,2026-11-23
-PNGJL.NS,normal,16.74,10.81,2.86,24.41,273.28,31.77,your peers (5 valid),-47.30878186968839,,,,Cheap vs peers,True,2026-11-23
-LUPIN.NS,normal,16.06,9.56,3.83,22.12,37.02,32.48,Screener industry,-50.55418719211823,0.4338195569962182,,,Cheap vs peers,False,2026-11-23
-KPIGREEN.NS,normal,14.53,11.07,1.93,19.23,83.84,18.11,Screener industry,-19.768083931529546,,,,Fair vs peers,False,2026-11-23
-HDFCBANK.NS,lender,15.88,16.72,2.11,14.84,18.9,,lenders (P/B per ROE point),0.0,,,0.14218328840970348,Fair vs peers,False,2026-11-23
-GENUSPOWER.NS,normal,11.69,8.9,3.09,20.44,55.44,21.17,Screener industry,-44.780349551251774,0.29225,,,Cheap vs peers,False,2026-11-23
-MGL.NS,normal,15.86,7.98,1.63,18.28,5.1,12.13,Screener industry,30.75020610057706,3.1098039215686275,,,Rich vs peers,False,2026-11-23
-RELIANCE.NS,cyclical,22.3,9.52,1.96,8.77,11.98,,-,,,,,Cyclical (not tagged),False,2026-11-23
-TIMETECHNO.NS,normal,18.19,9.82,2.21,13.31,34.7,19.01,Screener industry,-4.313519200420835,0.524207492795389,,,Fair vs peers,False,2026-11-23
-WAAREEENER.NS,normal,17.67,9.79,4.3,31.05,142.67,21.28,Screener industry,-16.964285714285708,,,,Fair vs peers,False,2026-11-23
-WAAREERTL.NS,normal,15.29,11.53,6.37,70.29,190.13,21.17,Screener industry,-27.775153519130857,,,,Cheap vs peers,False,2026-11-23
-POWERMECH.NS,normal,18.84,10.8,2.82,15.83,58.07,13.94,Screener industry,35.150645624103305,0.471,,,Rich vs peers,False,2026-11-23
-UPL.NS,cyclical,24.48,7.92,1.39,1.87,-9.78,,-,,,,,Cyclical (not tagged),False,2026-11-23
-BAYERCROP.NS,cyclical,20.08,13.61,4.69,23.43,7.24,,-,,,,,Cyclical (not tagged),False,2026-11-23
-COROMANDEL.NS,cyclical,36.41,18.3,4.35,17.27,7.8,,-,,,,,Cyclical (not tagged),False,2026-11-23
-DHANUKA.NS,cyclical,14.34,9.32,2.31,20.2,6.49,,-,,,,,Cyclical (not tagged),False,2026-11-23
-PIIND.NS,cyclical,30.06,14.81,2.15,16.18,10.23,,-,,,,,Cyclical (not tagged),False,2026-11-23
-SUMICHEM.NS,cyclical,30.44,20.74,4.53,17.35,9.93,,-,,,,,Cyclical (not tagged),False,2026-11-23
-RADICO.NS,normal,77.59,48.81,17.05,15.37,17.28,71.295,your peers (4 valid),8.82951118591766,4.490162037037037,,,Fair vs peers,True,2026-11-23
-UNITDSPR.NS,normal,59.3,38.13,11.86,20.73,34.51,77.045,your peers (4 valid),-23.03199428905186,1.7183425094175602,,,Cheap vs peers,True,2026-11-23
-ASAHIINDIA.NS,cyclical,53.85,25.78,7.1,12.62,21.73,,-,,,,,Cyclical (not tagged),False,2026-11-23
-BHARATFORG.NS,cyclical,84.05,28.02,7.29,12.22,38.6,,-,,,,,Cyclical (not tagged),False,2026-11-23
-BOSCHLTD.NS,cyclical,54.31,35.21,18.85,15.99,19.26,,-,,,,,Cyclical (not tagged),False,2026-11-23
-CRAFTSMAN.NS,cyclical,57.69,22.07,5.54,13.15,31.61,,-,,,,,Cyclical (not tagged),False,2026-11-23
-CIEINDIA.NS,cyclical,15.04,8.73,1.8,14.75,53.77,,-,,,,,Cyclical (not tagged),False,2026-11-23
-ENDURANCE.NS,cyclical,35.9,16.1,5.0,14.48,12.54,,-,,,,,Cyclical (not tagged),False,2026-11-23
-JWL.NS,normal,45.95,22.81,2.61,14.28,27.87,43.84,Screener industry,4.812956204379559,1.6487262289199858,,,Fair vs peers,False,2026-11-23
-MSUMI.NS,cyclical,40.33,23.72,12.89,36.49,9.56,,-,,,,,Cyclical (not tagged),False,2026-11-23
-MOTHERSON.NS,cyclical,36.22,13.34,3.92,11.71,31.9,,-,,,,,Cyclical (not tagged),False,2026-11-23
-SANSERA.NS,cyclical,74.48,38.67,8.91,11.29,26.0,,-,,,,,Cyclical (not tagged),False,2026-11-23
-SONACOMS.NS,cyclical,68.43,41.02,8.77,14.17,23.67,,-,,,,,Cyclical (not tagged),False,2026-11-23
-SJS.NS,cyclical,33.81,21.28,6.99,19.67,,,-,,,,,Cyclical (not tagged),False,2026-11-23
-SUPRAJIT.NS,cyclical,32.78,13.23,4.06,10.31,4.85,,-,,,,,Cyclical (not tagged),False,2026-11-23
-TIINDIA.NS,cyclical,61.92,14.64,5.3,15.39,16.96,,-,,,,,Cyclical (not tagged),True,2026-11-23
-ZFCVINDIA.NS,cyclical,48.77,28.44,6.47,14.9,40.53,,-,,,,,Cyclical (not tagged),False,2026-11-23
-ARE&M.NS,normal,17.55,8.49,1.58,11.99,4.03,26.59,Screener industry,-33.997743512598724,,,,Cheap vs peers,False,2026-11-23
-EXIDEIND.NS,cyclical,32.36,16.03,2.51,6.22,0.5,,-,,,,,Cyclical (not tagged),False,2026-11-23
-CASTROLIND.NS,cyclical,18.33,11.87,9.85,43.4,10.45,,-,,,,,Cyclical (not tagged),False,2026-11-23
-GULFOILLUB.NS,cyclical,13.43,7.47,3.44,24.54,12.8,,-,,,,,Cyclical (not tagged),False,2026-11-23
-ESCORTS.NS,normal,20.31,13.0,2.18,13.91,19.63,24.48,Screener industry,-17.0343137254902,1.0346408558329088,,,Fair vs peers,False,2026-11-23
-M&M.NS,normal,21.59,11.68,4.47,19.04,50.61,23.92,your peers (6 valid),-9.740802675585291,0.53975,,,Fair vs peers,True,2026-11-23
-MARUTI.NS,normal,33.15,17.77,4.09,15.59,26.85,36.05,Screener industry,-8.044382801664351,1.2346368715083798,,,Fair vs peers,False,2026-11-23
-ASHOKLEY.NS,normal,24.73,12.45,7.02,28.13,84.13,21.59,your peers (3 valid),14.543770264011124,,,,Fair vs peers,True,2026-11-23
-APOLLOTYRE.NS,cyclical,12.98,7.51,1.55,11.64,23.63,,-,,,,,Cyclical (not tagged),False,2026-11-23
-CEATLTD.NS,cyclical,24.68,8.97,2.85,15.33,10.16,,-,,,,,Cyclical (not tagged),False,2026-11-23
-JKTYRE.NS,cyclical,18.97,9.45,1.75,15.69,24.41,,-,,,,,Cyclical (not tagged),False,2026-11-23
-CSBBANK.NS,lender,7.86,13.61,1.04,14.52,23.69,,lenders (P/B per ROE point),-49.62463932735367,,,0.07162534435261708,Cheap vs peers,False,2026-11-23
-FEDERALBNK.NS,lender,17.21,17.95,2.12,12.9,21.04,,lenders (P/B per ROE point),15.583967081817862,,,0.16434108527131783,Fair vs peers,False,2026-11-23
-IDFCFIRSTB.NS,lender,25.08,19.17,1.51,5.71,30.18,,lenders (P/B per ROE point),85.99115213187144,,,0.26444833625218916,Stretched vs peers,False,2026-11-23
-INDUSINDBK.NS,lender,24.96,17.22,1.12,6.6,-21.2,,lenders (P/B per ROE point),19.35085451673133,,,0.16969696969696973,Fair vs peers,False,2026-11-23
-SBIN.NS,lender,5.84,17.12,0.81,11.69,39.24,,lenders (P/B per ROE point),-51.26713397848851,,,0.06928999144568007,Cheap vs peers,False,2026-11-23
-CERA.NS,normal,31.83,20.39,4.46,17.31,15.78,23.125,your peers (4 valid),37.64324324324324,2.017110266159696,,,Rich vs peers,True,2026-11-23
-FINCABLES.NS,normal,19.79,14.11,2.79,13.19,9.12,20.18,Screener industry,-1.9326065411298332,2.169956140350877,,,Fair vs peers,False,2026-11-23
-FINPIPE.NS,normal,14.47,9.43,1.16,8.1,-5.49,19.01,Screener industry,-23.882167280378752,,,,Cheap vs peers,False,2026-11-23
-HAVELLS.NS,normal,43.78,26.8,7.75,18.64,10.75,30.75,Screener industry,42.373983739837406,4.072558139534884,,,Rich vs peers,False,2026-11-23
-KAJARIACER.NS,normal,29.73,17.24,6.23,15.35,10.7,24.71,Screener industry,20.315661675435038,2.7785046728971965,,,Rich vs peers,False,2026-11-23
-KEI.NS,normal,34.51,22.58,5.03,16.18,27.41,35.5,your peers (3 valid),-2.7887323943662,1.2590295512586647,,,Fair vs peers,True,2026-11-23
-ACC.NS,cyclical,25.82,9.7,1.15,12.59,6.61,,-,,,,,Cyclical (not tagged),False,2026-11-23
-AMBUJACEM.NS,cyclical,32.23,15.68,1.65,9.0,15.3,,-,,,,,Cyclical (not tagged),False,2026-11-23
-BIRLACORPN.NS,cyclical,12.54,6.3,0.83,6.42,-3.95,,-,,,,,Cyclical (not tagged),False,2026-11-23
-ULTRACEMCO.NS,cyclical,41.94,21.39,5.04,10.72,8.12,,-,,,,,Cyclical (not tagged),False,2026-11-23
-DALBHARAT.NS,cyclical,14.28,6.81,1.09,9.3,-3.05,,-,,,,,Cyclical (not tagged),False,2026-11-23
-SHREECEM.NS,cyclical,57.34,17.86,3.83,8.28,-5.57,,-,,,,,Cyclical (not tagged),False,2026-11-23
-ATUL.NS,normal,19.21,10.75,2.25,9.23,1.26,24.86,Screener industry,-22.72727272727272,,,,Cheap vs peers,False,2026-11-23
-FINEORG.NS,normal,35.68,22.95,5.86,19.53,27.91,24.86,Screener industry,43.52373290426388,1.2783948405589394,,,Rich vs peers,False,2026-11-23
-GALAXYSURF.NS,normal,18.06,10.87,2.54,12.93,-1.72,24.86,Screener industry,-27.353177795655668,,,,Cheap vs peers,False,2026-11-23
-FLUOROCHEM.NS,normal,78.56,36.48,6.37,7.94,36.42,26.9,your peers (7 valid),192.04460966542754,2.157056562328391,,,Stretched vs peers,True,2026-11-23
-NOCIL.NS,normal,27.41,13.68,1.24,5.14,-10.5,24.86,Screener industry,10.25744167337088,,,,Fair vs peers,False,2026-11-23
-PCBL.NS,normal,37.76,12.89,2.58,10.98,-7.15,35.15,Screener industry,7.4253200568989985,,,,Fair vs peers,False,2026-11-23
-TATACHEM.NS,normal,,12.77,0.76,1.59,2.85,,-,,,,,Not valued,False,2026-11-23
-SRF.NS,normal,31.52,19.33,4.89,12.36,9.7,20.06,Screener industry,57.12861415752744,3.2494845360824742,,,Stretched vs peers,False,2026-11-23
-VINATIORGA.NS,normal,25.83,16.69,3.53,15.36,12.61,24.86,Screener industry,3.901850362027348,2.0483743061062647,,,Fair vs peers,False,2026-11-23
-ASHOKA.NS,normal,5.2,3.38,0.5,28.42,23.56,13.94,Screener industry,-62.69727403156384,0.2207130730050934,,,Cheap vs peers,False,2026-11-23
-GRINFRA.NS,normal,7.06,6.03,0.73,12.04,-3.0,13.94,Screener industry,-49.35437589670014,,,,Cheap vs peers,False,2026-11-23
-HGINFRA.NS,normal,8.96,6.41,0.78,16.49,4.67,13.94,Screener industry,-35.72453371592539,,,,Cheap vs peers,False,2026-11-23
-IRB.NS,normal,19.06,8.76,1.0,4.85,49.86,13.97,Screener industry,36.43521832498209,0.4765,,,Rich vs peers,False,2026-11-23
-JKIL.NS,normal,8.46,3.81,0.98,13.08,43.99,13.94,Screener industry,-39.31133428981348,0.21150000000000002,,,Cheap vs peers,False,2026-11-23
-KNRCON.NS,normal,9.41,5.95,0.56,19.19,4.06,13.94,Screener industry,-32.49641319942611,,,,Cheap vs peers,False,2026-11-23
-NCC.NS,normal,10.78,5.16,1.0,10.52,21.95,13.94,Screener industry,-22.66857962697274,0.4911161731207289,,,Cheap vs peers,False,2026-11-23
-PNCINFRA.NS,normal,5.27,4.76,0.46,12.31,-3.55,13.94,Screener industry,-62.19512195121951,,,,Cheap vs peers,False,2026-11-23
-RVNL.NS,normal,42.2,25.43,3.85,13.81,-2.48,25.98,your peers (5 valid),62.43264049268669,,,,Stretched vs peers,True,2026-11-23
-IRCON.NS,normal,20.8,9.09,1.5,11.62,6.42,13.94,Screener industry,49.21090387374463,3.2398753894081,,,Rich vs peers,False,2026-11-23
-TECHNOE.NS,normal,20.08,15.49,2.43,12.29,20.23,52.084999999999994,your peers (6 valid),-61.44763367572237,0.9925852694018783,,,Cheap vs peers,True,2026-11-23
-TRANSRAILL.NS,normal,13.22,5.75,2.33,21.41,33.29,29.96,Screener industry,-55.874499332443264,0.3971162511264644,,,Cheap vs peers,False,2026-11-23
-SANGHVIMOV.NS,normal,15.56,8.27,2.33,,57.22,,-,,,,,Not valued,False,2026-11-23
-BDL.NS,normal,76.6,41.85,8.3,13.92,10.28,39.295,your peers (6 valid),94.93574246087286,7.45136186770428,,,Stretched vs peers,True,2026-11-23
-BEL.NS,normal,45.3,30.69,11.09,27.73,23.57,43.39,your peers (6 valid),4.401935929937761,1.9219346627068306,,,Fair vs peers,True,2026-11-23
-DATAPATTNS.NS,normal,97.17,64.81,13.68,15.17,35.86,45.3,your peers (7 valid),114.50331125827815,2.7097044060234245,,,Stretched vs peers,True,2026-11-23
-HAL.NS,normal,33.29,19.03,7.28,26.01,22.99,49.394999999999996,your peers (6 valid),-32.604514626986536,1.4480208786428883,,,Cheap vs peers,True,2026-11-23
-AIAENG.NS,normal,25.2,18.0,3.74,16.93,18.64,29.93,Screener industry,-15.803541597059812,1.351931330472103,,,Fair vs peers,False,2026-11-23
-ENGINERSIN.NS,normal,18.68,12.6,5.02,22.51,15.36,13.94,Screener industry,34.002869440459115,1.2161458333333333,,,Rich vs peers,False,2026-11-23
-LT.NS,normal,30.08,15.53,5.06,15.52,3.38,18.84,your peers (5 valid),59.66029723991506,,,,Stretched vs peers,True,2026-11-23
-GAEL.NS,normal,12.81,8.39,1.83,10.39,-2.06,14.3,Screener industry,-10.41958041958042,,,,Fair vs peers,False,2026-11-23
-KRBL.NS,normal,11.64,7.87,1.57,11.2,3.0,14.3,Screener industry,-18.6013986013986,,,,Fair vs peers,False,2026-11-23
-BLUESTARCO.NS,normal,68.43,37.16,10.51,19.34,49.55,38.97,your peers (5 valid),75.59661277906085,1.7107500000000002,,,Stretched vs peers,True,2026-11-23
-CROMPTON.NS,normal,29.45,16.32,4.36,14.05,-9.76,38.33,Screener industry,-23.167231933211585,,,,Cheap vs peers,False,2026-11-23
-EUREKAFORB.NS,normal,34.55,19.89,1.55,3.48,159.94,38.33,Screener industry,-9.861727106704931,,,,Fair vs peers,False,2026-11-23
-SYMPHONY.NS,normal,,19.29,6.58,18.48,-29.67,,-,,,,,Not valued,False,2026-11-23
-VOLTAS.NS,normal,83.21,47.75,5.99,8.09,-5.62,41.375,your peers (4 valid),101.11178247734136,,,,Stretched vs peers,True,2026-11-23
-BIKAJI.NS,normal,48.35,29.21,7.22,19.09,25.24,41.83,Screener industry,15.58689935453026,1.915610142630745,,,Fair vs peers,False,2026-11-23
-BRITANNIA.NS,normal,43.76,30.4,27.48,54.45,6.32,41.63,Screener industry,5.116502522219535,6.924050632911392,,,Fair vs peers,False,2026-11-23
-CCL.NS,normal,27.09,16.7,4.7,17.07,16.37,19.97,Screener industry,35.6534802203305,1.6548564447159437,,,Rich vs peers,False,2026-11-23
-COLPAL.NS,normal,34.55,23.04,29.58,79.36,5.34,38.775000000000006,your peers (6 valid),-10.896196002579007,6.4700374531835205,,,Fair vs peers,True,2026-11-23
-DABUR.NS,normal,34.74,22.24,6.13,17.78,2.21,34.24,Screener industry,1.4602803738317682,,,,Fair vs peers,False,2026-11-23
-EMAMILTD.NS,normal,24.08,16.45,6.15,28.46,11.16,34.24,Screener industry,-29.672897196261694,2.157706093189964,,,Cheap vs peers,False,2026-11-23
-GODREJCP.NS,normal,43.94,27.38,7.39,13.84,2.58,34.24,Screener industry,28.329439252336442,,,,Rich vs peers,False,2026-11-23
-HINDUNILVR.NS,normal,42.81,29.15,9.79,23.91,13.26,35.11,Screener industry,21.93107376815724,3.228506787330317,,,Rich vs peers,False,2026-11-23
-ITC.NS,normal,19.95,13.61,5.23,35.24,9.62,43.849999999999994,your peers (6 valid),-54.50399087799316,2.073804573804574,,,Cheap vs peers,True,2026-11-23
-JYOTHYLAB.NS,normal,33.38,18.55,4.55,27.81,8.93,21.26,Screener industry,57.00846660395109,3.7379619260918258,,,Stretched vs peers,False,2026-11-23
-MARICO.NS,normal,59.24,42.37,25.25,40.97,8.61,34.644999999999996,your peers (6 valid),70.99148506277966,6.880371660859466,,,Stretched vs peers,True,2026-11-23
-NESTLEIND.NS,normal,62.63,40.54,42.39,92.3,10.62,41.63,Screener industry,50.444391064136425,5.897363465160076,,,Stretched vs peers,False,2026-11-23
-ZYDUSWELL.NS,normal,58.96,26.76,2.51,5.09,-1.82,41.83,Screener industry,40.95147023667225,,,,Rich vs peers,False,2026-11-23
-APOLLOHOSP.NS,normal,58.89,31.28,12.62,18.14,76.76,54.35,Screener industry,8.353265869365224,,,,Fair vs peers,False,2026-11-23
-MAXHEALTH.NS,normal,74.52,41.45,9.29,13.67,60.01,54.35,Screener industry,37.1113155473781,,,,Rich vs peers,False,2026-11-23
-MEDANTA.NS,normal,62.5,33.07,9.37,16.37,80.7,54.35,Screener industry,14.995400183992636,,,,Fair vs peers,False,2026-11-23
-EIHOTEL.NS,normal,27.48,15.45,3.85,16.53,31.68,31.69,your peers (5 valid),-13.284947933101932,0.8674242424242424,,,Fair vs peers,True,2026-11-23
-SAMHI.NS,normal,8.24,11.13,1.56,12.21,23.34,27.22,Screener industry,-69.72814107274064,0.3530419880034276,,,Cheap vs peers,False,2026-11-23
-LICHSGFIN.NS,lender,5.65,11.63,0.78,15.48,15.38,,lenders (P/B per ROE point),-64.56151952680112,,,0.050387596899224806,Cheap vs peers,False,2026-11-23
-LICI.NS,insurer,8.42,8.35,2.69,45.6,80.8,,-,,,,,Not valued,False,2026-11-23
-INDIAMART.NS,normal,18.56,12.95,4.02,21.74,11.22,15.53,Screener industry,19.51062459755313,1.6541889483065952,,,Fair vs peers,False,2026-11-23
-JUSTDIAL.NS,normal,10.94,7.26,1.04,5.22,14.95,15.53,Screener industry,-29.555698647778495,0.7317725752508362,,,Cheap vs peers,False,2026-11-23
-BSOFT.NS,normal,13.32,8.14,1.95,16.93,10.73,18.1,Screener industry,-26.408839779005532,1.2413793103448276,,,Cheap vs peers,False,2026-11-23
-COFORGE.NS,normal,43.77,24.95,4.23,20.37,29.4,25.03,your peers (7 valid),74.87015581302438,1.4887755102040818,,,Stretched vs peers,True,2026-11-23
-CYIENT.NS,normal,31.34,13.01,2.53,12.82,5.4,28.52,your peers (6 valid),9.887798036465645,5.803703703703703,,,Fair vs peers,True,2026-11-23
-HCLTECH.NS,normal,19.45,11.97,4.85,23.99,9.42,18.38,Screener industry,5.821545157780195,2.064755838641189,,,Fair vs peers,False,2026-11-23
-INFY.NS,normal,14.18,8.83,4.61,30.82,9.29,18.38,Screener industry,-22.85092491838955,1.5263724434876211,,,Cheap vs peers,False,2026-11-23
-INTELLECT.NS,normal,21.91,10.54,2.44,13.04,6.91,18.1,Screener industry,21.049723756906058,3.170767004341534,,,Rich vs peers,False,2026-11-23
-LTM.NS,normal,22.33,14.09,4.77,23.14,22.79,18.38,Screener industry,21.490750816104452,0.9798157086441421,,,Rich vs peers,False,2026-11-23
-LTTS.NS,normal,32.01,19.08,6.28,22.81,15.78,28.185000000000002,your peers (6 valid),13.571048430015953,2.0285171102661597,,,Fair vs peers,True,2026-11-23
-ROUTE.NS,normal,7.53,2.34,0.9,14.84,19.66,14.39,Screener industry,-47.671994440583745,0.3830111902339776,,,Cheap vs peers,False,2026-11-23
-TANLA.NS,normal,16.27,9.74,3.32,25.19,7.5,27.62,Screener industry,-41.09341057204924,2.1693333333333333,,,Cheap vs peers,False,2026-11-23
-TATAELXSI.NS,normal,33.18,20.62,8.17,28.65,13.75,28.185000000000002,your peers (6 valid),17.7221926556679,2.413090909090909,,,Fair vs peers,True,2026-11-23
-TCS.NS,normal,16.25,11.12,7.48,51.9,9.45,18.38,Screener industry,-11.588683351468987,1.7195767195767198,,,Fair vs peers,False,2026-11-23
-TECHM.NS,normal,30.66,16.83,5.71,13.65,2.44,18.38,Screener industry,66.81175190424375,,,,Stretched vs peers,False,2026-11-23
-ZENSARTECH.NS,normal,71.97,41.0,7.7,18.41,128.18,31.34,your peers (7 valid),129.64262922782387,,,,Stretched vs peers,True,2026-11-23
-KALYANKJIL.NS,normal,42.8,24.13,10.13,19.29,195.24,29.82,your peers (5 valid),43.52783366867874,,,,Rich vs peers,True,2026-11-23
-SKYGOLD.NS,normal,31.77,20.82,9.03,26.65,,29.82,your peers (5 valid),6.539235412474853,,,,Fair vs peers,True,2026-11-23
-THANGAMAYL.NS,normal,29.82,19.91,7.79,23.83,32.49,31.77,your peers (5 valid),-6.137865911237017,0.9178208679593721,,,Fair vs peers,True,2026-11-23
-TITAN.NS,normal,57.84,36.98,22.51,34.44,39.89,29.82,your peers (5 valid),93.96378269617706,1.449987465530208,,,Stretched vs peers,True,2026-11-23
-ADANIPORTS.NS,cyclical,32.09,18.28,4.26,17.83,21.0,,-,,,,,Cyclical (not tagged),False,2026-11-23
-BLUEDART.NS,normal,30.45,10.44,5.52,17.65,17.69,21.68,Screener industry,40.452029520295206,1.721311475409836,,,Rich vs peers,False,2026-11-23
-CONCOR.NS,normal,26.85,13.16,2.48,10.5,17.49,22.05,Screener industry,21.7687074829932,1.53516295025729,,,Rich vs peers,False,2026-11-23
-GATEWAY.NS,normal,10.16,5.93,1.03,12.44,22.25,21.68,Screener industry,-53.136531365313644,0.45662921348314606,,,Cheap vs peers,False,2026-11-23
-GESHIP.NS,cyclical,4.93,2.95,1.17,16.63,24.39,,-,,,,,Cyclical (not tagged),False,2026-11-23
-SCI.NS,cyclical,5.94,4.2,1.16,11.64,13.61,,-,,,,,Cyclical (not tagged),False,2026-11-23
-TCI.NS,normal,13.09,9.47,2.2,19.36,23.68,21.68,Screener industry,-39.62177121771218,0.5527871621621622,,,Cheap vs peers,False,2026-11-23
-VRLLOG.NS,normal,17.47,8.89,4.45,16.35,40.23,21.68,Screener industry,-19.418819188191883,0.43674999999999997,,,Fair vs peers,False,2026-11-23
-ELECON.NS,normal,31.65,16.45,3.92,20.76,43.68,29.96,Screener industry,5.6408544726301635,0.79125,,,Fair vs peers,False,2026-11-23
-ELGIEQUIP.NS,normal,36.39,22.66,7.17,19.78,30.67,43.115,your peers (6 valid),-15.597819784297807,1.1865014672318226,,,Fair vs peers,True,2026-11-23
-APARINDS.NS,normal,26.9,14.31,2.6,7.12,-4.56,24.86,Screener industry,8.205953338696691,,,,Fair vs peers,False,2026-11-23
-SIEMENS.NS,normal,83.88,50.44,8.06,17.29,29.56,59.03,your peers (5 valid),42.097238692190395,2.8376184032476317,,,Rich vs peers,True,2026-11-23
-TEXRAIL.NS,normal,23.2,13.47,1.82,7.53,67.76,42.2,your peers (5 valid),-45.02369668246446,,,,Cheap vs peers,True,2026-11-23
-TITAGARH.NS,normal,43.87,24.35,3.76,9.56,65.42,25.98,your peers (5 valid),68.86066204772901,,,,Stretched vs peers,True,2026-11-23
-HINDALCO.NS,cyclical,8.72,6.24,1.28,12.5,35.15,,-,,,,,Cyclical (not tagged),False,2026-11-23
-JSWSTEEL.NS,cyclical,20.27,10.18,2.81,8.97,2.85,,-,,,,,Cyclical (not tagged),False,2026-11-23
-NATIONALUM.NS,cyclical,7.77,4.08,2.23,25.72,34.88,,-,,,,,Cyclical (not tagged),False,2026-11-23
-NMDC.NS,cyclical,7.96,4.77,1.62,23.61,3.53,,-,,,,,Cyclical (not tagged),False,2026-11-23
-SAIL.NS,cyclical,11.21,5.9,1.08,5.85,-1.08,,-,,,,,Cyclical (not tagged),False,2026-11-23
-TATASTEEL.NS,cyclical,16.99,7.5,2.02,7.44,7.59,,-,,,,,Cyclical (not tagged),False,2026-11-23
-CARBORUNIV.NS,normal,83.38,24.47,4.73,10.79,-2.52,53.52,Screener industry,55.79222720478325,,,,Stretched vs peers,False,2026-11-23
-HEG.NS,normal,23.6,12.53,3.4,5.73,46.19,26.55,Screener industry,-11.111111111111105,0.5900000000000001,,,Fair vs peers,False,2026-11-23
-UNIPARTS.NS,normal,15.79,10.12,3.31,14.32,11.86,26.59,Screener industry,-40.61677322301618,1.3313659359190557,,,Cheap vs peers,False,2026-11-23
-ATGL.NS,normal,98.93,50.53,11.76,16.64,5.6,12.905,your peers (4 valid),666.6020922123209,17.66607142857143,,,Stretched vs peers,True,2026-11-23
-GAIL.NS,normal,9.65,6.77,1.3,11.27,4.32,14.39,Screener industry,-32.93954134815844,,,,Cheap vs peers,False,2026-11-23
-GUJENERGY.NS,normal,9.95,5.62,1.1,18.74,10.82,12.18,Screener industry,-18.308702791461418,0.9195933456561921,,,Fair vs peers,False,2026-11-23
-IGL.NS,normal,21.33,9.92,1.9,17.03,5.25,12.18,Screener industry,75.12315270935959,4.062857142857142,,,Stretched vs peers,False,2026-11-23
-BAJFINANCE.NS,lender,32.04,19.07,5.54,19.55,34.15,,lenders (P/B per ROE point),99.30328117234943,,,0.28337595907928387,Stretched vs peers,False,2026-11-23
-BAJAJFINSV.NS,lender,27.86,12.37,3.54,13.84,17.32,,lenders (P/B per ROE point),79.89480316686301,,,0.25578034682080925,Stretched vs peers,False,2026-11-23
-CREDITACC.NS,lender,9.95,9.33,1.77,13.77,40.43,,lenders (P/B per ROE point),-9.595349461532887,,,0.12854030501089325,Fair vs peers,False,2026-11-23
-CHOLAFIN.NS,lender,25.2,15.42,4.59,19.68,28.05,,lenders (P/B per ROE point),64.03594960120218,,,0.23323170731707316,Stretched vs peers,False,2026-11-23
-FIVESTAR.NS,lender,11.35,8.83,1.6,17.32,25.07,,lenders (P/B per ROE point),-35.02840318290773,,,0.09237875288683603,Cheap vs peers,False,2026-11-23
-HUDCO.NS,lender,7.11,14.2,1.39,16.56,20.46,,lenders (P/B per ROE point),-40.96549671451793,,,0.08393719806763285,Cheap vs peers,False,2026-11-23
-LTF.NS,lender,19.94,14.94,2.34,10.8,32.35,,lenders (P/B per ROE point),52.38546603475513,,,0.21666666666666665,Stretched vs peers,False,2026-11-23
-POONAWALLA.NS,lender,41.9,20.48,3.27,5.94,24.33,,lenders (P/B per ROE point),287.179855426301,,,0.5505050505050505,Stretched vs peers,False,2026-11-23
-SBICARD.NS,lender,21.04,14.85,3.19,16.8,17.08,,lenders (P/B per ROE point),33.546603475513436,,,0.18988095238095237,Rich vs peers,False,2026-11-23
-SHRIRAMFIN.NS,lender,18.41,11.92,2.08,16.01,32.03,,lenders (P/B per ROE point),-8.625829235874505,,,0.12991880074953152,Fair vs peers,False,2026-11-23
-BPCL.NS,cyclical,9.47,6.22,1.32,28.55,15.61,,-,,,,,Cyclical (not tagged),False,2026-11-23
-CHENNPETRO.NS,cyclical,3.76,2.78,1.56,23.48,64.37,,-,,,,,Cyclical (not tagged),False,2026-11-23
-OIL.NS,cyclical,7.42,5.73,1.1,14.25,11.67,,-,,,,,Cyclical (not tagged),False,2026-11-23
-ONGC.NS,cyclical,5.6,3.4,0.7,12.7,21.42,,-,,,,,Cyclical (not tagged),False,2026-11-23
-IOC.NS,cyclical,4.43,3.72,0.92,17.17,13.95,,-,,,,,Cyclical (not tagged),False,2026-11-23
-AGI.NS,normal,11.72,6.69,1.66,15.56,32.28,16.72,Screener industry,-29.904306220095688,0.3630731102850062,,,Cheap vs peers,False,2026-11-23
-EPL.NS,normal,17.61,7.66,2.34,15.1,10.95,16.72,Screener industry,5.322966507177029,1.6082191780821917,,,Fair vs peers,False,2026-11-23
-ASIANPAINT.NS,normal,49.93,30.32,11.43,24.34,7.28,32.98,Screener industry,51.39478471801093,6.858516483516484,,,Stretched vs peers,False,2026-11-23
-BERGEPAINT.NS,normal,43.88,26.25,7.64,20.08,9.62,32.98,Screener industry,33.050333535476064,4.561330561330562,,,Rich vs peers,False,2026-11-23
-JKPAPER.NS,cyclical,18.26,8.11,1.14,10.92,2.74,,-,,,,,Cyclical (not tagged),False,2026-11-23
-WSTCSTPAPR.NS,cyclical,12.51,5.9,1.06,11.84,115.11,,-,,,,,Cyclical (not tagged),False,2026-11-23
-APLLTD.NS,normal,22.18,14.26,3.3,12.73,-8.53,32.48,Screener industry,-31.71182266009852,,,,Cheap vs peers,False,2026-11-23
-ASTRAZEN.NS,normal,81.74,52.18,17.48,23.29,15.84,27.99,your peers (4 valid),192.03286888174347,5.1603535353535355,,,Stretched vs peers,True,2026-11-23
-AUROPHARMA.NS,normal,25.49,12.31,2.64,10.85,0.88,32.48,Screener industry,-21.520935960591125,,,,Cheap vs peers,False,2026-11-23
-BIOCON.NS,normal,85.17,18.82,1.7,3.51,-11.87,26.41,your peers (5 valid),222.49148049981068,,,,Stretched vs peers,True,2026-11-23
-CIPLA.NS,normal,36.51,20.34,3.21,15.16,9.94,32.48,Screener industry,12.407635467980294,3.6730382293762576,,,Fair vs peers,False,2026-11-23
-IPCALAB.NS,normal,32.0,18.49,5.35,12.94,0.78,32.48,Screener industry,-1.477832512315258,,,,Fair vs peers,False,2026-11-23
-MANKIND.NS,normal,46.35,25.42,6.18,15.99,10.56,32.48,Screener industry,42.703201970443374,4.389204545454545,,,Rich vs peers,False,2026-11-23
-PFIZER.NS,normal,22.11,12.77,4.0,16.91,8.8,32.76,Screener industry,-32.509157509157504,2.5124999999999997,,,Cheap vs peers,False,2026-11-23
-SYNGENE.NS,normal,67.25,21.71,3.68,10.24,-0.42,65.67999999999999,your peers (4 valid),2.390377588306958,,,,Fair vs peers,True,2026-11-23
-TORNTPHARM.NS,normal,83.55,34.01,9.84,26.17,12.07,29.205,your peers (6 valid),186.08115048793016,6.92212096106048,,,Stretched vs peers,True,2026-11-23
-ZYDUSLIFE.NS,normal,26.41,15.08,4.32,21.08,18.75,32.48,Screener industry,-18.688423645320185,1.4085333333333334,,,Fair vs peers,False,2026-11-23
-JSWENERGY.NS,normal,39.07,14.25,2.54,7.74,23.14,19.85,your peers (6 valid),96.82619647355162,1.6884183232497838,,,Stretched vs peers,True,2026-11-23
-NHPC.NS,normal,17.56,14.72,1.77,8.79,2.18,18.41,Screener industry,-4.617055947854432,,,,Fair vs peers,False,2026-11-23
-NTPC.NS,normal,10.33,9.16,1.47,14.14,13.67,18.41,Screener industry,-43.8891906572515,0.7556693489392831,,,Cheap vs peers,False,2026-11-23
-POWERGRID.NS,normal,15.26,10.76,2.32,16.73,2.75,23.43,Screener industry,-34.869825010670084,,,,Cheap vs peers,False,2026-11-23
-VOLTAMP.NS,normal,30.01,21.97,5.2,20.64,26.22,72.52,your peers (5 valid),-58.61831218974076,1.1445461479786423,,,Cheap vs peers,True,2026-11-23
-PFC.NS,lender,4.16,9.92,0.75,20.98,17.14,,lenders (P/B per ROE point),-74.85757141759925,,,0.03574833174451859,Cheap vs peers,False,2026-11-23
-RECLTD.NS,lender,5.14,10.98,0.81,21.22,14.27,,lenders (P/B per ROE point),-73.15328917099579,,,0.03817153628652215,Cheap vs peers,False,2026-11-23
-ANANTRAJ.NS,normal,26.62,19.86,2.63,10.24,120.48,23.83,Screener industry,11.707931179185916,,,,Fair vs peers,False,2026-11-23
-DLF.NS,normal,42.73,62.92,4.31,9.36,29.48,35.355000000000004,your peers (6 valid),20.85985009192475,1.4494572591587516,,,Rich vs peers,True,2026-11-23
-GODREJPROP.NS,normal,42.7,35.76,3.07,8.66,57.63,35.37,your peers (6 valid),20.723777212326855,1.0675000000000001,,,Rich vs peers,True,2026-11-23
-LODHA.NS,normal,28.01,19.36,4.86,13.76,58.64,23.83,Screener industry,17.54091481326061,0.70025,,,Fair vs peers,False,2026-11-23
-OBEROIRLTY.NS,normal,25.59,17.81,3.56,14.28,27.13,23.83,Screener industry,7.3856483424255215,0.9432362698120162,,,Fair vs peers,False,2026-11-23
-SOBHA.NS,normal,70.05,25.27,2.83,3.15,25.44,35.355000000000004,your peers (6 valid),98.1332201951633,2.7535377358490565,,,Stretched vs peers,True,2026-11-23
-DMART.NS,normal,71.46,40.21,8.65,13.55,21.99,46.13,Screener industry,54.9100368523737,3.2496589358799453,,,Stretched vs peers,False,2026-11-23
-BATAINDIA.NS,normal,46.49,11.68,6.49,15.22,32.22,36.36,Screener industry,27.860286028602864,1.4428926132836748,,,Rich vs peers,False,2026-11-23
-RELAXO.NS,normal,36.29,16.0,2.94,8.97,-8.96,46.49,your peers (3 valid),-21.94020219402022,,,,Cheap vs peers,True,2026-11-23
-METROBRAND.NS,normal,54.01,23.66,10.7,21.75,43.8,37.26,Screener industry,44.95437466451959,1.35025,,,Rich vs peers,False,2026-11-23
-SIS.NS,normal,11.82,6.97,1.92,7.48,-9.57,11.39,Screener industry,3.7752414398595224,,,,Fair vs peers,False,2026-11-23
-ABCAPITAL.NS,lender,25.52,15.52,2.69,12.46,28.22,,lenders (P/B per ROE point),51.83982107673466,,,0.21589085072231137,Stretched vs peers,False,2026-11-23
-ANGELONE.NS,normal,26.64,16.89,4.69,25.1,25.02,16.77,Screener industry,58.85509838998211,1.064748201438849,,,Stretched vs peers,False,2026-11-23
-JMFINANCIL.NS,normal,10.3,7.05,0.96,8.99,15.58,13.79,Screener industry,-25.30819434372733,0.6611039794608473,,,Cheap vs peers,False,2026-11-23
-SHAREINDIA.NS,normal,10.44,6.48,1.31,18.16,31.98,17.08,Screener industry,-38.875878220140514,0.32645403377110693,,,Cheap vs peers,False,2026-11-23
-BHARTIARTL.NS,normal,39.89,11.18,8.47,19.76,22.1,40.96,Screener industry,-2.6123046875,1.8049773755656107,,,Fair vs peers,False,2026-11-23
-BAJAJ-AUTO.NS,normal,22.4,16.03,7.95,26.27,17.32,29.79,Screener industry,-24.806982208794903,1.2933025404157044,,,Cheap vs peers,False,2026-11-23
-EICHERMOT.NS,normal,37.13,25.53,8.62,24.08,32.76,29.79,Screener industry,24.639140651225254,1.1333943833943836,,,Rich vs peers,False,2026-11-23
-HEROMOTOCO.NS,normal,18.1,12.47,4.69,24.56,15.51,29.79,Screener industry,-39.241356159785155,1.166989039329465,,,Cheap vs peers,False,2026-11-23
-IONEXCHANG.NS,normal,,45.5,3.36,16.81,1.01,,-,,,,,Not valued,False,2026-11-23
-GOLDIAM.NS,normal,18.84,12.34,3.48,17.7,29.3,29.82,your peers (5 valid),-36.82092555331992,0.6430034129692832,,,Cheap vs peers,True,2026-11-23
-NBCC.NS,normal,28.47,14.99,6.52,24.27,22.77,19.045,your peers (6 valid),49.488054607508516,1.2503293807641633,,,Rich vs peers,True,2026-11-23
-EVEREADY.NS,normal,13.03,13.82,3.37,22.49,-14.28,21.26,Screener industry,-38.711194731890885,,,,Cheap vs peers,False,2026-11-23
-EASEMYTRIP.NS,normal,,958.88,2.28,12.92,,,-,,,,,Not valued,False,2026-11-23
+ticker,type,pe,ev_ebitda,pb,roe3,growth,notes,peer_pe,peer_src,premium,peg,hist_prem,pb_per_roe,tag,own_peers,run_date
+AXISBANK.NS,lender,14.58,18.17,1.92,15.64,29.65,,,lenders (P/B per ROE point),-13.659228372989418,,,0.1227621483375959,Fair vs peers,False,2026-11-23
+ICICIBANK.NS,lender,19.51,19.57,3.01,17.36,23.98,,,lenders (P/B per ROE point),21.94618559853234,,,0.17338709677419353,Rich vs peers,False,2026-11-23
+KOTAKBANK.NS,lender,23.65,20.22,2.66,13.73,14.13,,,lenders (P/B per ROE point),36.25816784776135,,,0.1937363437727604,Rich vs peers,False,2026-11-23
+ACE.NS,normal,29.86,20.76,6.22,26.64,40.38,,29.39,Screener industry,1.5991833957128332,0.7464999999999999,,,Fair vs peers,False,2026-11-23
+APTUS.NS,lender,9.35,8.91,1.75,18.77,28.71,,,lenders (P/B per ROE point),-34.42697457624978,,,0.09323388385721897,Cheap vs peers,False,2026-11-23
+AAVAS.NS,lender,12.25,11.07,1.6,13.98,17.72,,,lenders (P/B per ROE point),-19.505861454074534,,,0.11444921316165951,Fair vs peers,False,2026-11-23
+VBL.NS,normal,41.7,23.05,7.36,21.57,50.62,,46.055,your peers (6 valid),-9.456085115622614,1.0425,,,Fair vs peers,True,2026-11-23
+SENCO.NS,normal,8.43,6.56,1.91,18.07,56.46,,31.77,your peers (5 valid),-73.46553352219074,0.21075,,,Cheap vs peers,True,2026-11-23
+PNGJL.NS,normal,16.74,10.81,2.86,24.41,273.28,5-year profit growth of 273% a year comes from a low base: PEG not shown,31.77,your peers (5 valid),-47.30878186968839,,,,Cheap vs peers,True,2026-11-23
+LUPIN.NS,normal,16.06,9.56,3.83,22.12,37.02,,32.48,Screener industry,-50.55418719211823,0.4338195569962182,,,Cheap vs peers,False,2026-11-23
+KPIGREEN.NS,normal,14.53,11.07,1.93,19.23,83.84,5-year profit growth of 84% a year comes from a low base: PEG not shown,18.11,Screener industry,-19.768083931529546,,,,Fair vs peers,False,2026-11-23
+HDFCBANK.NS,lender,15.88,16.72,2.11,14.84,18.9,,,lenders (P/B per ROE point),0.0,,,0.14218328840970348,Fair vs peers,False,2026-11-23
+GENUSPOWER.NS,normal,11.69,8.9,3.09,20.44,55.44,,21.17,Screener industry,-44.780349551251774,0.29225,,,Cheap vs peers,False,2026-11-23
+MGL.NS,normal,15.86,7.98,1.63,18.28,5.1,,12.13,Screener industry,30.75020610057706,3.1098039215686275,,,Rich vs peers,False,2026-11-23
+RELIANCE.NS,cyclical,22.3,9.52,1.96,8.77,11.98,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+TIMETECHNO.NS,normal,18.19,9.82,2.21,13.31,34.7,,19.01,Screener industry,-4.313519200420835,0.524207492795389,,,Fair vs peers,False,2026-11-23
+WAAREEENER.NS,normal,17.67,9.79,4.3,31.05,142.67,5-year profit growth of 143% a year comes from a low base: PEG not shown,21.28,Screener industry,-16.964285714285708,,,,Fair vs peers,False,2026-11-23
+POWERMECH.NS,normal,18.84,10.8,2.82,15.83,58.07,,13.94,Screener industry,35.150645624103305,0.471,,,Rich vs peers,False,2026-11-23
+UPL.NS,cyclical,24.48,7.92,1.39,1.87,-9.78,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+BAYERCROP.NS,cyclical,20.08,13.61,4.69,23.43,7.24,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+COROMANDEL.NS,cyclical,36.41,18.3,4.35,17.27,7.8,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+DHANUKA.NS,cyclical,14.34,9.32,2.31,20.2,6.49,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+PIIND.NS,cyclical,30.06,14.81,2.15,16.18,10.23,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+SUMICHEM.NS,cyclical,30.44,20.74,4.53,17.35,9.93,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+RADICO.NS,normal,77.59,48.81,17.05,15.37,17.28,,71.295,your peers (4 valid),8.82951118591766,4.490162037037037,,,Fair vs peers,True,2026-11-23
+SULA.NS,normal,41.74,13.8,2.01,11.19,32.02,,32.87,Screener industry,26.98509278977792,1.3035602748282322,,,Rich vs peers,False,2026-11-23
+SDBL.NS,normal,,138.77,2.0,11.14,19.78,"P/E missing, negative or above 100",,-,,,,,Not valued,False,2026-11-23
+UNITDSPR.NS,normal,59.3,38.13,11.86,20.73,34.51,,77.045,your peers (4 valid),-23.03199428905186,1.7183425094175602,,,Cheap vs peers,True,2026-11-23
+ASAHIINDIA.NS,cyclical,53.85,25.78,7.1,12.62,21.73,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+BHARATFORG.NS,cyclical,84.05,28.02,7.29,12.22,38.6,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+BOSCHLTD.NS,cyclical,54.31,35.21,18.85,15.99,19.26,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+CRAFTSMAN.NS,cyclical,57.69,22.07,5.54,13.15,31.61,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+CIEINDIA.NS,cyclical,15.04,8.73,1.8,14.75,53.77,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+ENDURANCE.NS,cyclical,35.9,16.1,5.0,14.48,12.54,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+JWL.NS,normal,45.95,22.81,2.61,14.28,27.87,,43.84,Screener industry,4.812956204379559,1.6487262289199858,,,Fair vs peers,False,2026-11-23
+MSUMI.NS,cyclical,40.33,23.72,12.89,36.49,9.56,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+MOTHERSON.NS,cyclical,36.22,13.34,3.92,11.71,31.9,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+SANSERA.NS,cyclical,74.48,38.67,8.91,11.29,26.0,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+SONACOMS.NS,cyclical,68.43,41.02,8.77,14.17,23.67,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+SJS.NS,cyclical,33.81,21.28,6.99,19.67,,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+SUPRAJIT.NS,cyclical,32.78,13.23,4.06,10.31,4.85,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+TIINDIA.NS,cyclical,61.92,14.64,5.3,15.39,16.96,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),True,2026-11-23
+ZFCVINDIA.NS,cyclical,48.77,28.44,6.47,14.9,40.53,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+ARE&M.NS,normal,17.55,8.49,1.58,11.99,4.03,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,26.59,Screener industry,-33.997743512598724,,,,Cheap vs peers,False,2026-11-23
+EXIDEIND.NS,cyclical,32.36,16.03,2.51,6.22,0.5,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+CASTROLIND.NS,cyclical,18.33,11.87,9.85,43.4,10.45,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+GULFOILLUB.NS,cyclical,13.43,7.47,3.44,24.54,12.8,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+ESCORTS.NS,normal,20.31,13.0,2.18,13.91,19.63,,24.48,Screener industry,-17.0343137254902,1.0346408558329088,,,Fair vs peers,False,2026-11-23
+M&M.NS,normal,21.59,11.68,4.47,19.04,50.61,,23.92,your peers (6 valid),-9.740802675585291,0.53975,,,Fair vs peers,True,2026-11-23
+MARUTI.NS,normal,33.15,17.77,4.09,15.59,26.85,,36.05,Screener industry,-8.044382801664351,1.2346368715083798,,,Fair vs peers,False,2026-11-23
+ASHOKLEY.NS,normal,24.73,12.45,7.02,28.13,84.13,5-year profit growth of 84% a year comes from a low base: PEG not shown,21.59,your peers (3 valid),14.543770264011124,,,,Fair vs peers,True,2026-11-23
+APOLLOTYRE.NS,cyclical,12.98,7.51,1.55,11.64,23.63,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+CEATLTD.NS,cyclical,24.68,8.97,2.85,15.33,10.16,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+JKTYRE.NS,cyclical,18.97,9.45,1.75,15.69,24.41,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+CSBBANK.NS,lender,7.86,13.61,1.04,14.52,23.69,,,lenders (P/B per ROE point),-49.62463932735367,,,0.07162534435261708,Cheap vs peers,False,2026-11-23
+FEDERALBNK.NS,lender,17.21,17.95,2.12,12.9,21.04,,,lenders (P/B per ROE point),15.583967081817862,,,0.16434108527131783,Fair vs peers,False,2026-11-23
+IDFCFIRSTB.NS,lender,25.08,19.17,1.51,5.71,30.18,"ROE under 8%: weak returns, so the valuation ratio can mislead",,lenders (P/B per ROE point),85.99115213187144,,,0.26444833625218916,Stretched vs peers,False,2026-11-23
+INDUSINDBK.NS,lender,24.96,17.22,1.12,6.6,-21.2,"ROE under 8%: weak returns, so the valuation ratio can mislead",,lenders (P/B per ROE point),19.35085451673133,,,0.16969696969696973,Fair vs peers,False,2026-11-23
+SBIN.NS,lender,5.84,17.12,0.81,11.69,39.24,,,lenders (P/B per ROE point),-51.26713397848851,,,0.06928999144568007,Cheap vs peers,False,2026-11-23
+CERA.NS,normal,31.83,20.39,4.46,17.31,15.78,,23.125,your peers (4 valid),37.64324324324324,2.017110266159696,,,Rich vs peers,True,2026-11-23
+FINCABLES.NS,normal,19.79,14.11,2.79,13.19,9.12,,20.18,Screener industry,-1.9326065411298332,2.169956140350877,,,Fair vs peers,False,2026-11-23
+FINPIPE.NS,normal,14.47,9.43,1.16,8.1,-5.49,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,19.01,Screener industry,-23.882167280378752,,,,Cheap vs peers,False,2026-11-23
+HAVELLS.NS,normal,43.78,26.8,7.75,18.64,10.75,,30.75,Screener industry,42.373983739837406,4.072558139534884,,,Rich vs peers,False,2026-11-23
+KAJARIACER.NS,normal,29.73,17.24,6.23,15.35,10.7,,24.71,Screener industry,20.315661675435038,2.7785046728971965,,,Rich vs peers,False,2026-11-23
+KEI.NS,normal,34.51,22.58,5.03,16.18,27.41,,35.5,your peers (3 valid),-2.7887323943662,1.2590295512586647,,,Fair vs peers,True,2026-11-23
+ACC.NS,cyclical,25.82,9.7,1.15,12.59,6.61,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+AMBUJACEM.NS,cyclical,32.23,15.68,1.65,9.0,15.3,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+BIRLACORPN.NS,cyclical,12.54,6.3,0.83,6.42,-3.95,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+ULTRACEMCO.NS,cyclical,41.94,21.39,5.04,10.72,8.12,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+DALBHARAT.NS,cyclical,14.28,6.81,1.09,9.3,-3.05,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+SHREECEM.NS,cyclical,57.34,17.86,3.83,8.28,-5.57,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+ATUL.NS,normal,19.21,10.75,2.25,9.23,1.26,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,24.86,Screener industry,-22.72727272727272,,,,Cheap vs peers,False,2026-11-23
+FINEORG.NS,normal,35.68,22.95,5.86,19.53,27.91,,24.86,Screener industry,43.52373290426388,1.2783948405589394,,,Rich vs peers,False,2026-11-23
+GALAXYSURF.NS,normal,18.06,10.87,2.54,12.93,-1.72,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,24.86,Screener industry,-27.353177795655668,,,,Cheap vs peers,False,2026-11-23
+FLUOROCHEM.NS,normal,78.56,36.48,6.37,7.94,36.42,"Premium over 100% even against your peers: earnings look depressed, or the peer list is off; ROE under 8%: weak returns, so the valuation ratio can mislead",26.9,your peers (7 valid),192.04460966542754,2.157056562328391,,,Stretched vs peers,True,2026-11-23
+NOCIL.NS,normal,27.41,13.68,1.24,5.14,-10.5,"Profit growth under 5% a year: PEG not meaningful; ROE under 8%: weak returns, so the valuation ratio can mislead",24.86,Screener industry,10.25744167337088,,,,Fair vs peers,False,2026-11-23
+PCBL.NS,normal,37.76,12.89,2.58,10.98,-7.15,Profit growth under 5% a year: PEG not meaningful,35.15,Screener industry,7.4253200568989985,,,,Fair vs peers,False,2026-11-23
+TATACHEM.NS,normal,,12.77,0.76,1.59,2.85,"P/E missing, negative or above 100",,-,,,,,Not valued,False,2026-11-23
+SRF.NS,normal,31.52,19.33,4.89,12.36,9.7,,20.06,Screener industry,57.12861415752744,3.2494845360824742,,,Stretched vs peers,False,2026-11-23
+VINATIORGA.NS,normal,25.83,16.69,3.53,15.36,12.61,,24.86,Screener industry,3.901850362027348,2.0483743061062647,,,Fair vs peers,False,2026-11-23
+CONTROLPR.NS,normal,29.07,10.62,2.07,17.47,6.12,,18.07,Screener industry,60.87437742114001,4.75,,,Stretched vs peers,False,2026-11-23
+ASHOKA.NS,normal,5.2,3.38,0.5,28.42,23.56,,13.94,Screener industry,-62.69727403156384,0.2207130730050934,,,Cheap vs peers,False,2026-11-23
+GRINFRA.NS,normal,7.06,6.03,0.73,12.04,-3.0,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,13.94,Screener industry,-49.35437589670014,,,,Cheap vs peers,False,2026-11-23
+HGINFRA.NS,normal,8.96,6.41,0.78,16.49,4.67,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,13.94,Screener industry,-35.72453371592539,,,,Cheap vs peers,False,2026-11-23
+IRB.NS,normal,19.06,8.76,1.0,4.85,49.86,"ROE under 8%: weak returns, so the valuation ratio can mislead",13.97,Screener industry,36.43521832498209,0.4765,,,Rich vs peers,False,2026-11-23
+JKIL.NS,normal,8.46,3.81,0.98,13.08,43.99,,13.94,Screener industry,-39.31133428981348,0.21150000000000002,,,Cheap vs peers,False,2026-11-23
+KNRCON.NS,normal,9.41,5.95,0.56,19.19,4.06,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,13.94,Screener industry,-32.49641319942611,,,,Cheap vs peers,False,2026-11-23
+NCC.NS,normal,10.78,5.16,1.0,10.52,21.95,,13.94,Screener industry,-22.66857962697274,0.4911161731207289,,,Cheap vs peers,False,2026-11-23
+PNCINFRA.NS,normal,5.27,4.76,0.46,12.31,-3.55,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,13.94,Screener industry,-62.19512195121951,,,,Cheap vs peers,False,2026-11-23
+RVNL.NS,normal,42.2,25.43,3.85,13.81,-2.48,Profit growth under 5% a year: PEG not meaningful,25.98,your peers (5 valid),62.43264049268669,,,,Stretched vs peers,True,2026-11-23
+IRCON.NS,normal,20.8,9.09,1.5,11.62,6.42,,13.94,Screener industry,49.21090387374463,3.2398753894081,,,Rich vs peers,False,2026-11-23
+TECHNOE.NS,normal,20.08,15.49,2.43,12.29,20.23,,52.084999999999994,your peers (6 valid),-61.44763367572237,0.9925852694018783,,,Cheap vs peers,True,2026-11-23
+TRANSRAILL.NS,normal,13.22,5.75,2.33,21.41,33.29,,29.96,Screener industry,-55.874499332443264,0.3971162511264644,,,Cheap vs peers,False,2026-11-23
+SANGHVIMOV.NS,normal,15.56,8.27,2.33,,57.22,"Screener's industry P/E is essentially this stock's own (its group is just or mostly this company): no real comparison, add a peers.csv entry",,-,,,,,Not valued,False,2026-11-23
+BDL.NS,normal,76.6,41.85,8.3,13.92,10.28,,39.295,your peers (6 valid),94.93574246087286,7.45136186770428,,,Stretched vs peers,True,2026-11-23
+BEL.NS,normal,45.3,30.69,11.09,27.73,23.57,,43.39,your peers (6 valid),4.401935929937761,1.9219346627068306,,,Fair vs peers,True,2026-11-23
+DATAPATTNS.NS,normal,97.17,64.81,13.68,15.17,35.86,"Premium over 100% even against your peers: earnings look depressed, or the peer list is off",45.3,your peers (7 valid),114.50331125827815,2.7097044060234245,,,Stretched vs peers,True,2026-11-23
+HAL.NS,normal,33.29,19.03,7.28,26.01,22.99,,49.394999999999996,your peers (6 valid),-32.604514626986536,1.4480208786428883,,,Cheap vs peers,True,2026-11-23
+AIAENG.NS,normal,25.2,18.0,3.74,16.93,18.64,,29.93,Screener industry,-15.803541597059812,1.351931330472103,,,Fair vs peers,False,2026-11-23
+ENGINERSIN.NS,normal,18.68,12.6,5.02,22.51,15.36,,13.94,Screener industry,34.002869440459115,1.2161458333333333,,,Rich vs peers,False,2026-11-23
+LT.NS,normal,30.08,15.53,5.06,15.52,3.38,Profit growth under 5% a year: PEG not meaningful,18.84,your peers (5 valid),59.66029723991506,,,,Stretched vs peers,True,2026-11-23
+GAEL.NS,normal,12.81,8.39,1.83,10.39,-2.06,Profit growth under 5% a year: PEG not meaningful,14.3,Screener industry,-10.41958041958042,,,,Fair vs peers,False,2026-11-23
+KRBL.NS,normal,11.64,7.87,1.57,11.2,3.0,Profit growth under 5% a year: PEG not meaningful,14.3,Screener industry,-18.6013986013986,,,,Fair vs peers,False,2026-11-23
+BLUESTARCO.NS,normal,68.43,37.16,10.51,19.34,49.55,,38.97,your peers (5 valid),75.59661277906085,1.7107500000000002,,,Stretched vs peers,True,2026-11-23
+CROMPTON.NS,normal,29.45,16.32,4.36,14.05,-9.76,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,38.33,Screener industry,-23.167231933211585,,,,Cheap vs peers,False,2026-11-23
+EUREKAFORB.NS,normal,34.55,19.89,1.55,3.48,159.94,"5-year profit growth of 160% a year comes from a low base: PEG not shown; ROE under 8%: weak returns, so the valuation ratio can mislead",38.33,Screener industry,-9.861727106704931,,,,Fair vs peers,False,2026-11-23
+SYMPHONY.NS,normal,,19.29,6.58,18.48,-29.67,"P/E missing, negative or above 100",,-,,,,,Not valued,False,2026-11-23
+VOLTAS.NS,normal,83.21,47.75,5.99,8.09,-5.62,"Profit growth under 5% a year: PEG not meaningful; Premium over 100% even against your peers: earnings look depressed, or the peer list is off",41.375,your peers (4 valid),101.11178247734136,,,,Stretched vs peers,True,2026-11-23
+BIKAJI.NS,normal,48.35,29.21,7.22,19.09,25.24,,41.83,Screener industry,15.58689935453026,1.915610142630745,,,Fair vs peers,False,2026-11-23
+BRITANNIA.NS,normal,43.76,30.4,27.48,54.45,6.32,,41.63,Screener industry,5.116502522219535,6.924050632911392,,,Fair vs peers,False,2026-11-23
+CCL.NS,normal,27.09,16.7,4.7,17.07,16.37,,19.97,Screener industry,35.6534802203305,1.6548564447159437,,,Rich vs peers,False,2026-11-23
+COLPAL.NS,normal,34.55,23.04,29.58,79.36,5.34,,38.775000000000006,your peers (6 valid),-10.896196002579007,6.4700374531835205,,,Fair vs peers,True,2026-11-23
+DABUR.NS,normal,34.74,22.24,6.13,17.78,2.21,Profit growth under 5% a year: PEG not meaningful,34.24,Screener industry,1.4602803738317682,,,,Fair vs peers,False,2026-11-23
+EMAMILTD.NS,normal,24.08,16.45,6.15,28.46,11.16,,34.24,Screener industry,-29.672897196261694,2.157706093189964,,,Cheap vs peers,False,2026-11-23
+GODREJCP.NS,normal,43.94,27.38,7.39,13.84,2.58,Profit growth under 5% a year: PEG not meaningful,34.24,Screener industry,28.329439252336442,,,,Rich vs peers,False,2026-11-23
+HINDUNILVR.NS,normal,42.81,29.15,9.79,23.91,13.26,,35.11,Screener industry,21.93107376815724,3.228506787330317,,,Rich vs peers,False,2026-11-23
+ITC.NS,normal,19.95,13.61,5.23,35.24,9.62,,43.849999999999994,your peers (6 valid),-54.50399087799316,2.073804573804574,,,Cheap vs peers,True,2026-11-23
+JYOTHYLAB.NS,normal,33.38,18.55,4.55,27.81,8.93,,21.26,Screener industry,57.00846660395109,3.7379619260918258,,,Stretched vs peers,False,2026-11-23
+MARICO.NS,normal,59.24,42.37,25.25,40.97,8.61,,34.644999999999996,your peers (6 valid),70.99148506277966,6.880371660859466,,,Stretched vs peers,True,2026-11-23
+NESTLEIND.NS,normal,62.63,40.54,42.39,92.3,10.62,,41.63,Screener industry,50.444391064136425,5.897363465160076,,,Stretched vs peers,False,2026-11-23
+ZYDUSWELL.NS,normal,58.96,26.76,2.51,5.09,-1.82,"Profit growth under 5% a year: PEG not meaningful; ROE under 8%: weak returns, so the valuation ratio can mislead",41.83,Screener industry,40.95147023667225,,,,Rich vs peers,False,2026-11-23
+APOLLOHOSP.NS,normal,58.89,31.28,12.62,18.14,76.76,5-year profit growth of 77% a year comes from a low base: PEG not shown,54.35,Screener industry,8.353265869365224,,,,Fair vs peers,False,2026-11-23
+MAXHEALTH.NS,normal,74.52,41.45,9.29,13.67,60.01,5-year profit growth of 60% a year comes from a low base: PEG not shown,54.35,Screener industry,37.1113155473781,,,,Rich vs peers,False,2026-11-23
+MEDANTA.NS,normal,62.5,33.07,9.37,16.37,80.7,5-year profit growth of 81% a year comes from a low base: PEG not shown,54.35,Screener industry,14.995400183992636,,,,Fair vs peers,False,2026-11-23
+EIHOTEL.NS,normal,27.48,15.45,3.85,16.53,31.68,,31.69,your peers (5 valid),-13.284947933101932,0.8674242424242424,,,Fair vs peers,True,2026-11-23
+SAMHI.NS,normal,8.24,11.13,1.56,12.21,23.34,,27.22,Screener industry,-69.72814107274064,0.3530419880034276,,,Cheap vs peers,False,2026-11-23
+LICHSGFIN.NS,lender,5.65,11.63,0.78,15.48,15.38,,,lenders (P/B per ROE point),-64.56151952680112,,,0.050387596899224806,Cheap vs peers,False,2026-11-23
+LICI.NS,insurer,8.42,8.35,2.69,45.6,80.8,Insurer: not valued here,,-,,,,,Not valued,False,2026-11-23
+INDIAMART.NS,normal,18.56,12.95,4.02,21.74,11.22,,15.53,Screener industry,19.51062459755313,1.6541889483065952,,,Fair vs peers,False,2026-11-23
+JUSTDIAL.NS,normal,10.94,7.26,1.04,5.22,14.95,"ROE under 8%: weak returns, so the valuation ratio can mislead",15.53,Screener industry,-29.555698647778495,0.7317725752508362,,,Cheap vs peers,False,2026-11-23
+BSOFT.NS,normal,13.32,8.14,1.95,16.93,10.73,,18.1,Screener industry,-26.408839779005532,1.2413793103448276,,,Cheap vs peers,False,2026-11-23
+COFORGE.NS,normal,43.77,24.95,4.23,20.37,29.4,,25.03,your peers (7 valid),74.87015581302438,1.4887755102040818,,,Stretched vs peers,True,2026-11-23
+CYIENT.NS,normal,31.34,13.01,2.53,12.82,5.4,,28.52,your peers (6 valid),9.887798036465645,5.803703703703703,,,Fair vs peers,True,2026-11-23
+HCLTECH.NS,normal,19.45,11.97,4.85,23.99,9.42,,18.38,Screener industry,5.821545157780195,2.064755838641189,,,Fair vs peers,False,2026-11-23
+INFY.NS,normal,14.18,8.83,4.61,30.82,9.29,,18.38,Screener industry,-22.85092491838955,1.5263724434876211,,,Cheap vs peers,False,2026-11-23
+INTELLECT.NS,normal,21.91,10.54,2.44,13.04,6.91,,18.1,Screener industry,21.049723756906058,3.170767004341534,,,Rich vs peers,False,2026-11-23
+LTM.NS,normal,22.33,14.09,4.77,23.14,22.79,,18.38,Screener industry,21.490750816104452,0.9798157086441421,,,Rich vs peers,False,2026-11-23
+LTTS.NS,normal,32.01,19.08,6.28,22.81,15.78,,28.185000000000002,your peers (6 valid),13.571048430015953,2.0285171102661597,,,Fair vs peers,True,2026-11-23
+ROUTE.NS,normal,7.53,2.34,0.9,14.84,19.66,,14.39,Screener industry,-47.671994440583745,0.3830111902339776,,,Cheap vs peers,False,2026-11-23
+TANLA.NS,normal,16.27,9.74,3.32,25.19,7.5,,27.62,Screener industry,-41.09341057204924,2.1693333333333333,,,Cheap vs peers,False,2026-11-23
+TATAELXSI.NS,normal,33.18,20.62,8.17,28.65,13.75,,28.185000000000002,your peers (6 valid),17.7221926556679,2.413090909090909,,,Fair vs peers,True,2026-11-23
+TCS.NS,normal,16.25,11.12,7.48,51.9,9.45,,18.38,Screener industry,-11.588683351468987,1.7195767195767198,,,Fair vs peers,False,2026-11-23
+TECHM.NS,normal,30.66,16.83,5.71,13.65,2.44,Profit growth under 5% a year: PEG not meaningful,18.38,Screener industry,66.81175190424375,,,,Stretched vs peers,False,2026-11-23
+ZENSARTECH.NS,normal,71.97,41.0,7.7,18.41,128.18,"5-year profit growth of 128% a year comes from a low base: PEG not shown; Premium over 100% even against your peers: earnings look depressed, or the peer list is off",31.34,your peers (7 valid),129.64262922782387,,,,Stretched vs peers,True,2026-11-23
+KALYANKJIL.NS,normal,42.8,24.13,10.13,19.29,195.24,5-year profit growth of 195% a year comes from a low base: PEG not shown,29.82,your peers (5 valid),43.52783366867874,,,,Rich vs peers,True,2026-11-23
+SKYGOLD.NS,normal,31.77,20.82,9.03,26.65,,,29.82,your peers (5 valid),6.539235412474853,,,,Fair vs peers,True,2026-11-23
+THANGAMAYL.NS,normal,29.82,19.91,7.79,23.83,32.49,,31.77,your peers (5 valid),-6.137865911237017,0.9178208679593721,,,Fair vs peers,True,2026-11-23
+TITAN.NS,normal,57.84,36.98,22.51,34.44,39.89,,29.82,your peers (5 valid),93.96378269617706,1.449987465530208,,,Stretched vs peers,True,2026-11-23
+ALLCARGO.NS,normal,32.95,6.63,2.28,4.01,-45.79,"Profit growth under 5% a year: PEG not meaningful; ROE under 8%: weak returns, so the valuation ratio can mislead",21.68,Screener industry,51.98339483394836,,,,Stretched vs peers,False,2026-11-23
+ADANIPORTS.NS,cyclical,32.09,18.28,4.26,17.83,21.0,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+BLUEDART.NS,normal,30.45,10.44,5.52,17.65,17.69,,21.68,Screener industry,40.452029520295206,1.721311475409836,,,Rich vs peers,False,2026-11-23
+CONCOR.NS,normal,26.85,13.16,2.48,10.5,17.49,,22.05,Screener industry,21.7687074829932,1.53516295025729,,,Rich vs peers,False,2026-11-23
+GATEWAY.NS,normal,10.16,5.93,1.03,12.44,22.25,,21.68,Screener industry,-53.136531365313644,0.45662921348314606,,,Cheap vs peers,False,2026-11-23
+GESHIP.NS,cyclical,4.93,2.95,1.17,16.63,24.39,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+SCI.NS,cyclical,5.94,4.2,1.16,11.64,13.61,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+SNOWMAN.NS,normal,88.84,7.97,1.35,1.62,138.15,"5-year profit growth of 138% a year comes from a low base: PEG not shown; Premium over 100%: check the peer group; ROE under 8%: weak returns, so the valuation ratio can mislead",21.68,Screener industry,309.7785977859779,,,,Stretched vs peers,False,2026-11-23
+TCI.NS,normal,13.09,9.47,2.2,19.36,23.68,,21.68,Screener industry,-39.62177121771218,0.5527871621621622,,,Cheap vs peers,False,2026-11-23
+TCIEXP.NS,normal,20.11,12.33,2.12,14.11,-2.15,Profit growth under 5% a year: PEG not meaningful,21.68,Screener industry,-7.241697416974169,,,,Fair vs peers,False,2026-11-23
+VRLLOG.NS,normal,17.47,8.89,4.45,16.35,40.23,,21.68,Screener industry,-19.418819188191883,0.43674999999999997,,,Fair vs peers,False,2026-11-23
+ELECON.NS,normal,31.65,16.45,3.92,20.76,43.68,,29.96,Screener industry,5.6408544726301635,0.79125,,,Fair vs peers,False,2026-11-23
+ELGIEQUIP.NS,normal,36.39,22.66,7.17,19.78,30.67,,43.115,your peers (6 valid),-15.597819784297807,1.1865014672318226,,,Fair vs peers,True,2026-11-23
+APARINDS.NS,normal,26.9,14.31,2.6,7.12,-4.56,"Profit growth under 5% a year: PEG not meaningful; ROE under 8%: weak returns, so the valuation ratio can mislead",24.86,Screener industry,8.205953338696691,,,,Fair vs peers,False,2026-11-23
+SIEMENS.NS,normal,83.88,50.44,8.06,17.29,29.56,,59.03,your peers (5 valid),42.097238692190395,2.8376184032476317,,,Rich vs peers,True,2026-11-23
+TEXRAIL.NS,normal,23.2,13.47,1.82,7.53,67.76,"5-year profit growth of 68% a year comes from a low base: PEG not shown; ROE under 8%: weak returns, so the valuation ratio can mislead",42.2,your peers (5 valid),-45.02369668246446,,,,Cheap vs peers,True,2026-11-23
+TITAGARH.NS,normal,43.87,24.35,3.76,9.56,65.42,5-year profit growth of 65% a year comes from a low base: PEG not shown,25.98,your peers (5 valid),68.86066204772901,,,,Stretched vs peers,True,2026-11-23
+HINDALCO.NS,cyclical,8.72,6.24,1.28,12.5,35.15,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+JSWSTEEL.NS,cyclical,20.27,10.18,2.81,8.97,2.85,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+NATIONALUM.NS,cyclical,7.77,4.08,2.23,25.72,34.88,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+NMDC.NS,cyclical,7.96,4.77,1.62,23.61,3.53,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+SAIL.NS,cyclical,11.21,5.9,1.08,5.85,-1.08,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+TATASTEEL.NS,cyclical,16.99,7.5,2.02,7.44,7.59,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+CARBORUNIV.NS,normal,83.38,24.47,4.73,10.79,-2.52,Profit growth under 5% a year: PEG not meaningful,53.52,Screener industry,55.79222720478325,,,,Stretched vs peers,False,2026-11-23
+HEG.NS,normal,23.6,12.53,3.4,5.73,46.19,"ROE under 8%: weak returns, so the valuation ratio can mislead",26.55,Screener industry,-11.111111111111105,0.5900000000000001,,,Fair vs peers,False,2026-11-23
+UNIPARTS.NS,normal,15.79,10.12,3.31,14.32,11.86,,26.59,Screener industry,-40.61677322301618,1.3313659359190557,,,Cheap vs peers,False,2026-11-23
+ATGL.NS,normal,98.93,50.53,11.76,16.64,5.6,"Premium over 100% even against your peers: earnings look depressed, or the peer list is off",12.905,your peers (4 valid),666.6020922123209,17.66607142857143,,,Stretched vs peers,True,2026-11-23
+GAIL.NS,normal,9.65,6.77,1.3,11.27,4.32,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,14.39,Screener industry,-32.93954134815844,,,,Cheap vs peers,False,2026-11-23
+GUJENERGY.NS,normal,9.95,5.62,1.1,18.74,10.82,,12.18,Screener industry,-18.308702791461418,0.9195933456561921,,,Fair vs peers,False,2026-11-23
+IGL.NS,normal,21.33,9.92,1.9,17.03,5.25,,12.18,Screener industry,75.12315270935959,4.062857142857142,,,Stretched vs peers,False,2026-11-23
+BAJFINANCE.NS,lender,32.04,19.07,5.54,19.55,34.15,,,lenders (P/B per ROE point),99.30328117234943,,,0.28337595907928387,Stretched vs peers,False,2026-11-23
+BAJAJFINSV.NS,lender,27.86,12.37,3.54,13.84,17.32,,,lenders (P/B per ROE point),79.89480316686301,,,0.25578034682080925,Stretched vs peers,False,2026-11-23
+CREDITACC.NS,lender,9.95,9.33,1.77,13.77,40.43,,,lenders (P/B per ROE point),-9.595349461532887,,,0.12854030501089325,Fair vs peers,False,2026-11-23
+CHOLAFIN.NS,lender,25.2,15.42,4.59,19.68,28.05,,,lenders (P/B per ROE point),64.03594960120218,,,0.23323170731707316,Stretched vs peers,False,2026-11-23
+FIVESTAR.NS,lender,11.35,8.83,1.6,17.32,25.07,,,lenders (P/B per ROE point),-35.02840318290773,,,0.09237875288683603,Cheap vs peers,False,2026-11-23
+HUDCO.NS,lender,7.11,14.2,1.39,16.56,20.46,,,lenders (P/B per ROE point),-40.96549671451793,,,0.08393719806763285,Cheap vs peers,False,2026-11-23
+LTF.NS,lender,19.94,14.94,2.34,10.8,32.35,,,lenders (P/B per ROE point),52.38546603475513,,,0.21666666666666665,Stretched vs peers,False,2026-11-23
+POONAWALLA.NS,lender,41.9,20.48,3.27,5.94,24.33,"ROE under 8%: weak returns, so the valuation ratio can mislead",,lenders (P/B per ROE point),287.179855426301,,,0.5505050505050505,Stretched vs peers,False,2026-11-23
+SBICARD.NS,lender,21.04,14.85,3.19,16.8,17.08,,,lenders (P/B per ROE point),33.546603475513436,,,0.18988095238095237,Rich vs peers,False,2026-11-23
+SHRIRAMFIN.NS,lender,18.41,11.92,2.08,16.01,32.03,,,lenders (P/B per ROE point),-8.625829235874505,,,0.12991880074953152,Fair vs peers,False,2026-11-23
+BPCL.NS,cyclical,9.47,6.22,1.32,28.55,15.61,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+CHENNPETRO.NS,cyclical,3.76,2.78,1.56,23.48,64.37,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+OIL.NS,cyclical,7.42,5.73,1.1,14.25,11.67,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+ONGC.NS,cyclical,5.6,3.4,0.7,12.7,21.42,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+IOC.NS,cyclical,4.43,3.72,0.92,17.17,13.95,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+AGI.NS,normal,11.72,6.69,1.66,15.56,32.28,,16.72,Screener industry,-29.904306220095688,0.3630731102850062,,,Cheap vs peers,False,2026-11-23
+EPL.NS,normal,17.61,7.66,2.34,15.1,10.95,,16.72,Screener industry,5.322966507177029,1.6082191780821917,,,Fair vs peers,False,2026-11-23
+ASIANPAINT.NS,normal,49.93,30.32,11.43,24.34,7.28,,32.98,Screener industry,51.39478471801093,6.858516483516484,,,Stretched vs peers,False,2026-11-23
+BERGEPAINT.NS,normal,43.88,26.25,7.64,20.08,9.62,,32.98,Screener industry,33.050333535476064,4.561330561330562,,,Rich vs peers,False,2026-11-23
+JKPAPER.NS,cyclical,18.26,8.11,1.14,10.92,2.74,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+WSTCSTPAPR.NS,cyclical,12.51,5.9,1.06,11.84,115.11,"Cyclical: P/E unreliable, judge on EV/EBITDA and P/B across the cycle",,-,,,,,Cyclical (not tagged),False,2026-11-23
+APLLTD.NS,normal,22.18,14.26,3.3,12.73,-8.53,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,32.48,Screener industry,-31.71182266009852,,,,Cheap vs peers,False,2026-11-23
+ASTRAZEN.NS,normal,81.74,52.18,17.48,23.29,15.84,"Premium over 100% even against your peers: earnings look depressed, or the peer list is off",27.99,your peers (4 valid),192.03286888174347,5.1603535353535355,,,Stretched vs peers,True,2026-11-23
+AUROPHARMA.NS,normal,25.49,12.31,2.64,10.85,0.88,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,32.48,Screener industry,-21.520935960591125,,,,Cheap vs peers,False,2026-11-23
+BIOCON.NS,normal,85.17,18.82,1.7,3.51,-11.87,"Profit growth under 5% a year: PEG not meaningful; Premium over 100% even against your peers: earnings look depressed, or the peer list is off; ROE under 8%: weak returns, so the valuation ratio can mislead",26.41,your peers (5 valid),222.49148049981068,,,,Stretched vs peers,True,2026-11-23
+CIPLA.NS,normal,36.51,20.34,3.21,15.16,9.94,,32.48,Screener industry,12.407635467980294,3.6730382293762576,,,Fair vs peers,False,2026-11-23
+IPCALAB.NS,normal,32.0,18.49,5.35,12.94,0.78,Profit growth under 5% a year: PEG not meaningful,32.48,Screener industry,-1.477832512315258,,,,Fair vs peers,False,2026-11-23
+MANKIND.NS,normal,46.35,25.42,6.18,15.99,10.56,,32.48,Screener industry,42.703201970443374,4.389204545454545,,,Rich vs peers,False,2026-11-23
+PFIZER.NS,normal,22.11,12.77,4.0,16.91,8.8,,32.76,Screener industry,-32.509157509157504,2.5124999999999997,,,Cheap vs peers,False,2026-11-23
+SYNGENE.NS,normal,67.25,21.71,3.68,10.24,-0.42,Profit growth under 5% a year: PEG not meaningful,65.67999999999999,your peers (4 valid),2.390377588306958,,,,Fair vs peers,True,2026-11-23
+TORNTPHARM.NS,normal,83.55,34.01,9.84,26.17,12.07,"Premium over 100% even against your peers: earnings look depressed, or the peer list is off",29.205,your peers (6 valid),186.08115048793016,6.92212096106048,,,Stretched vs peers,True,2026-11-23
+ZYDUSLIFE.NS,normal,26.41,15.08,4.32,21.08,18.75,,32.48,Screener industry,-18.688423645320185,1.4085333333333334,,,Fair vs peers,False,2026-11-23
+JSWENERGY.NS,normal,39.07,14.25,2.54,7.74,23.14,"ROE under 8%: weak returns, so the valuation ratio can mislead",19.85,your peers (6 valid),96.82619647355162,1.6884183232497838,,,Stretched vs peers,True,2026-11-23
+NHPC.NS,normal,17.56,14.72,1.77,8.79,2.18,Profit growth under 5% a year: PEG not meaningful,18.41,Screener industry,-4.617055947854432,,,,Fair vs peers,False,2026-11-23
+NTPC.NS,normal,10.33,9.16,1.47,14.14,13.67,,18.41,Screener industry,-43.8891906572515,0.7556693489392831,,,Cheap vs peers,False,2026-11-23
+POWERGRID.NS,normal,15.26,10.76,2.32,16.73,2.75,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,23.43,Screener industry,-34.869825010670084,,,,Cheap vs peers,False,2026-11-23
+VOLTAMP.NS,normal,30.01,21.97,5.2,20.64,26.22,,72.52,your peers (5 valid),-58.61831218974076,1.1445461479786423,,,Cheap vs peers,True,2026-11-23
+PFC.NS,lender,4.16,9.92,0.75,20.98,17.14,,,lenders (P/B per ROE point),-74.85757141759925,,,0.03574833174451859,Cheap vs peers,False,2026-11-23
+RECLTD.NS,lender,5.14,10.98,0.81,21.22,14.27,,,lenders (P/B per ROE point),-73.15328917099579,,,0.03817153628652215,Cheap vs peers,False,2026-11-23
+ANANTRAJ.NS,normal,26.62,19.86,2.63,10.24,120.48,5-year profit growth of 120% a year comes from a low base: PEG not shown,23.83,Screener industry,11.707931179185916,,,,Fair vs peers,False,2026-11-23
+DLF.NS,normal,42.73,62.92,4.31,9.36,29.48,,35.355000000000004,your peers (6 valid),20.85985009192475,1.4494572591587516,,,Rich vs peers,True,2026-11-23
+GODREJPROP.NS,normal,42.7,35.76,3.07,8.66,57.63,,35.37,your peers (6 valid),20.723777212326855,1.0675000000000001,,,Rich vs peers,True,2026-11-23
+LODHA.NS,normal,28.01,19.36,4.86,13.76,58.64,,23.83,Screener industry,17.54091481326061,0.70025,,,Fair vs peers,False,2026-11-23
+OBEROIRLTY.NS,normal,25.59,17.81,3.56,14.28,27.13,,23.83,Screener industry,7.3856483424255215,0.9432362698120162,,,Fair vs peers,False,2026-11-23
+SOBHA.NS,normal,70.05,25.27,2.83,3.15,25.44,"ROE under 8%: weak returns, so the valuation ratio can mislead",35.355000000000004,your peers (6 valid),98.1332201951633,2.7535377358490565,,,Stretched vs peers,True,2026-11-23
+DMART.NS,normal,71.46,40.21,8.65,13.55,21.99,,46.13,Screener industry,54.9100368523737,3.2496589358799453,,,Stretched vs peers,False,2026-11-23
+BATAINDIA.NS,normal,46.49,11.68,6.49,15.22,32.22,,36.36,Screener industry,27.860286028602864,1.4428926132836748,,,Rich vs peers,False,2026-11-23
+RELAXO.NS,normal,36.29,16.0,2.94,8.97,-8.96,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,46.49,your peers (3 valid),-21.94020219402022,,,,Cheap vs peers,True,2026-11-23
+METROBRAND.NS,normal,54.01,23.66,10.7,21.75,43.8,,37.26,Screener industry,44.95437466451959,1.35025,,,Rich vs peers,False,2026-11-23
+SIS.NS,normal,11.82,6.97,1.92,7.48,-9.57,"Profit growth under 5% a year: PEG not meaningful; ROE under 8%: weak returns, so the valuation ratio can mislead",11.39,Screener industry,3.7752414398595224,,,,Fair vs peers,False,2026-11-23
+ABCAPITAL.NS,lender,25.52,15.52,2.69,12.46,28.22,,,lenders (P/B per ROE point),51.83982107673466,,,0.21589085072231137,Stretched vs peers,False,2026-11-23
+ANGELONE.NS,normal,26.64,16.89,4.69,25.1,25.02,,16.77,Screener industry,58.85509838998211,1.064748201438849,,,Stretched vs peers,False,2026-11-23
+JMFINANCIL.NS,normal,10.3,7.05,0.96,8.99,15.58,,13.79,Screener industry,-25.30819434372733,0.6611039794608473,,,Cheap vs peers,False,2026-11-23
+SHAREINDIA.NS,normal,10.44,6.48,1.31,18.16,31.98,,17.08,Screener industry,-38.875878220140514,0.32645403377110693,,,Cheap vs peers,False,2026-11-23
+BHARTIARTL.NS,normal,39.89,11.18,8.47,19.76,22.1,,40.96,Screener industry,-2.6123046875,1.8049773755656107,,,Fair vs peers,False,2026-11-23
+BAJAJ-AUTO.NS,normal,22.4,16.03,7.95,26.27,17.32,,29.79,Screener industry,-24.806982208794903,1.2933025404157044,,,Cheap vs peers,False,2026-11-23
+EICHERMOT.NS,normal,37.13,25.53,8.62,24.08,32.76,,29.79,Screener industry,24.639140651225254,1.1333943833943836,,,Rich vs peers,False,2026-11-23
+HEROMOTOCO.NS,normal,18.1,12.47,4.69,24.56,15.51,,29.79,Screener industry,-39.241356159785155,1.166989039329465,,,Cheap vs peers,False,2026-11-23
+IONEXCHANG.NS,normal,,45.5,3.36,16.81,1.01,"P/E missing, negative or above 100",,-,,,,,Not valued,False,2026-11-23
+GOLDIAM.NS,normal,18.84,12.34,3.48,17.7,29.3,,29.82,your peers (5 valid),-36.82092555331992,0.6430034129692832,,,Cheap vs peers,True,2026-11-23
+NBCC.NS,normal,28.47,14.99,6.52,24.27,22.77,,19.045,your peers (6 valid),49.488054607508516,1.2503293807641633,,,Rich vs peers,True,2026-11-23
+EVEREADY.NS,normal,13.03,13.82,3.37,22.49,-14.28,Profit growth under 5% a year: PEG not meaningful; Cheap but growth is low or unknown: possible value trap,21.26,Screener industry,-38.711194731890885,,,,Cheap vs peers,False,2026-11-23
+EASEMYTRIP.NS,normal,,958.88,2.28,12.92,,"P/E missing, negative or above 100",,-,,,,,Not valued,False,2026-11-23
