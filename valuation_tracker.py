@@ -144,6 +144,9 @@ def peer_median_pe(peer_list, sc):
 # ============================================================
 # VALUATION
 # ============================================================
+IND_PE_COUNTS = {}   # how many export rows share each Screener industry P/E; a value held by one stock is that stock itself
+
+
 def value_stock(t, x, stype, peer_list, sc, lender_ref):
     r = {"ticker": t, "type": stype, "pe": x.get("pe", np.nan), "ev_ebitda": x.get("ev_ebitda", np.nan),
          "pb": x.get("pb", np.nan), "roe3": x.get("roe3", np.nan), "growth": x.get("profit_5y", np.nan),
@@ -188,6 +191,9 @@ def value_stock(t, x, stype, peer_list, sc, lender_ref):
             r["notes"].append("Your peer list has too few valid peers in the export")
     if np.isnan(r["peer_pe"]):
         ind = x.get("ind_pe", np.nan)
+        if valid_pe(ind) and IND_PE_COUNTS.get(round(float(ind), 1), 2) <= 1 and abs(r["pe"] / float(ind) - 1) < 0.03:
+            r["notes"].append("Screener's industry P/E is this stock's own (no real peers in its group): add a peers.csv entry")
+            return r
         if valid_pe(ind):
             r["peer_pe"], r["peer_src"] = float(ind), "Screener industry"
     if not np.isnan(r["peer_pe"]):
@@ -340,6 +346,8 @@ def main():
         print("No usable Screener export:", info)
         notify_problem(f"The Screener.in export could not be used: {info}")
         return
+    if "ind_pe" in sc.columns:
+        IND_PE_COUNTS.update(sc["ind_pe"].dropna().round(1).value_counts().to_dict())
     peers, type_over = load_peers(PEERS_FILE)
     print(f"peers.csv: {len(peers)} peer groups, {len(type_over)} type overrides")
     types = None
@@ -354,6 +362,8 @@ def main():
         print("  not found:", ", ".join(rep_["unmatched"]))
         info += (f"; matched by company name: {rep_['exact']} exact, {len(rep_['fuzzy'])} close"
                  + (" (" + "; ".join(f"{t.replace('.NS','')}={nm}" for t, nm, _ in rep_["fuzzy"][:15]) + ")" if rep_["fuzzy"] else "")
+                 + (f", {len(rep_['conflicts'])} left out because two stocks claimed the same row ("
+                    + ", ".join(t.replace(".NS", "") for t, _ in rep_["conflicts"]) + ": add to name_map.csv)" if rep_["conflicts"] else "")
                  + f", {len(rep_['unmatched'])} not found"
                  + (" (" + ", ".join(t.replace('.NS', '') for t in rep_["unmatched"][:25]) + ")" if rep_["unmatched"] else ""))
         if sc.empty:

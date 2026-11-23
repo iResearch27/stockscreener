@@ -123,38 +123,35 @@ def _abbrev_score(sc_name, yahoo_name):
 def match_by_name(sc, ticker_names, overrides=None, cutoff=0.88):
     """For exports without links: attach NSE tickers by company name.
     ticker_names: {ticker: [names, e.g. Yahoo long and short name]}. overrides: {ticker: Screener name}.
+    A Screener row is given to only one ticker: if two tickers claim the same row by a loose match, neither gets it.
     Returns (DataFrame indexed by ticker, report dict)."""
     import difflib
-    keys = list(sc.index)
-    by_key = {k: k[5:] for k in keys}                       # strip 'NAME:'
-    rows, fuzzy, unmatched = {}, [], []
+    by_key = {k: k[5:] for k in sc.index}                   # strip 'NAME:'
     overrides = {t: norm_name(n) for t, n in (overrides or {}).items()}
-    exact = 0
+    claims = {}                                             # ticker -> (key, kind, score)
+    unmatched = []
     for t, names in ticker_names.items():
         cands = [norm_name(n) for n in names if n]
-        hit = None
+        hit, kind, score = None, None, 1.0
         if t in overrides and "NAME:" + overrides[t] in sc.index:
-            hit = "NAME:" + overrides[t]
-            exact += 1
+            hit, kind = "NAME:" + overrides[t], "exact"
         else:
             for c in cands:
                 if c and "NAME:" + c in sc.index:
-                    hit = "NAME:" + c
-                    exact += 1
+                    hit, kind = "NAME:" + c, "exact"
                     break
         if hit is None and cands:
-            best, score = None, 0.0
+            best, bscore = None, 0.0
             for c in cands:
                 for k, nm in by_key.items():
                     r = difflib.SequenceMatcher(None, c, nm).ratio()
-                    if r > score:
-                        best, score = k, r
-            if best is not None and score >= cutoff:
-                hit = best
-                fuzzy.append((t, sc.loc[best, "name"], round(score, 2)))
-        if hit is None:
+                    if r > bscore:
+                        best, bscore = k, r
+            if best is not None and bscore >= cutoff:
+                hit, kind, score = best, "close", round(bscore, 2)
+        if hit is None and names:
             ranked = []
-            for k, nm in by_key.items():
+            for k in by_key:
                 for yn in names:
                     r = _abbrev_score(sc.loc[k, "name"], yn)
                     if r is not None:
@@ -164,14 +161,30 @@ def match_by_name(sc, ticker_names, overrides=None, cutoff=0.88):
                 top = max(r for r, _ in ranked)
                 best = [k for r, k in ranked if r == top]
                 if len(best) == 1:
-                    hit = best[0]
-                    fuzzy.append((t, sc.loc[hit, "name"], round(top, 2)))
+                    hit, kind, score = best[0], "close", round(top, 2)
         if hit is None:
             unmatched.append(t)
         else:
-            rows[t] = sc.loc[hit]
+            claims[t] = (hit, kind, score)
+    # one Screener row, one ticker
+    by_row = {}
+    for t, (k, kind, sco) in claims.items():
+        by_row.setdefault(k, []).append((t, kind))
+    conflicts = []
+    for k, lst in by_row.items():
+        if len(lst) < 2:
+            continue
+        exact = [t for t, kind in lst if kind == "exact"]
+        losers = [t for t, _ in lst if not (len(exact) == 1 and t == exact[0])]
+        for t in losers:
+            claims.pop(t)
+            unmatched.append(t)
+            conflicts.append((t, sc.loc[k, "name"]))
+    rows = {t: sc.loc[k] for t, (k, _, _) in claims.items()}
+    fuzzy = [(t, sc.loc[k, "name"], sco) for t, (k, kind, sco) in claims.items() if kind == "close"]
+    exact_n = sum(1 for v in claims.values() if v[1] == "exact")
     out = pd.DataFrame.from_dict(rows, orient="index") if rows else pd.DataFrame()
-    return out, {"exact": exact, "fuzzy": fuzzy, "unmatched": unmatched}
+    return out, {"exact": exact_n, "fuzzy": fuzzy, "unmatched": unmatched, "conflicts": conflicts}
 
 
 def load_screener(path=None, require=("ni_yoy", "rev_yoy"), allow_names=False):

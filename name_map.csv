@@ -1,0 +1,15 @@
+# Fixes for company names that do not match automatically. Columns: ticker, screener_name
+# screener_name is the name exactly as it appears in the Screener export (Company column).
+ticker,screener_name
+SCI.NS,S C I
+SUMICHEM.NS,Sumitomo Chemi.
+APTUS.NS,Aptus Value Hou.
+GENUSPOWER.NS,Genus Power
+BAYERCROP.NS,Bayer Crop Sci.
+MSUMI.NS,Motherson Wiring
+TIINDIA.NS,Tube Investments
+ZFCVINDIA.NS,ZF Commercial
+LICI.NS,Life Insurance
+ADANIPORTS.NS,Adani Ports
+CONCOR.NS,Container Corpn.
+GESHIP.NS,GE Shipping Co
