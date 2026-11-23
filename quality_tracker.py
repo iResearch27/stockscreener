@@ -38,7 +38,14 @@ STOCKS_FILE = "watchlist.txt"   # one shared list for all trackers
 MAX_WORKERS = 6
 MAX_TICKERS = int(os.environ.get("QT_MAX_TICKERS", "0"))   # testing only; 0 = all
 MIN_COVERAGE = 0.6        # share of the score that must be computable, otherwise "insufficient data"
-GRADE_A, GRADE_B, GRADE_C = 70, 55, 40
+GRADE_APLUS, GRADE_A, GRADE_B, GRADE_C = 85, 70, 55, 40   # A+ also needs zero red flags
+NI_CAGR_CAP = 30.0        # profit growth above this earns no extra points (a very low starting year inflates CAGR)
+LOW_BASE_CAGR = 60.0      # profit CAGR above this is noted as "low base"
+# Companies whose consolidated accounts include a lending/financing arm. Their debt and operating cash flow figures are
+# distorted by the loan book, so debt/equity, interest cover and cash-flow measures are left out of their score.
+# Add or remove tickers here as you learn more.
+FINANCE_ARM_TICKERS = {"M&M.NS", "ASHOKLEY.NS", "TITAN.NS", "LT.NS"}
+FINANCE_ARM_SKIP = {"de", "int_cover", "ocf_ni", "fcf_pos"}
 
 # Red-flag thresholds
 FLAG_ROCE_MIN = 10.0
@@ -49,23 +56,24 @@ FLAG_OCF_NI_MIN = 0.6
 
 # Score weights: (metric, max points, value at 0 points, value at full points)
 NONFIN_RULES = [
-    ("roce", 15, 8.0, 20.0),
-    ("roe", 15, 8.0, 18.0),
-    ("rev_cagr", 10, 0.0, 15.0),
-    ("ni_cagr", 10, 0.0, 15.0),
+    ("roce", 15, 10.0, 25.0),
+    ("roe", 15, 10.0, 22.0),
+    ("rev_cagr", 10, 0.0, 20.0),
+    ("ni_cagr", 10, 0.0, 20.0),
     ("consistency", 10, 0.0, 1.0),
     ("de", 10, 1.5, 0.3),            # lower is better: 0 points at 1.5, full at 0.3
-    ("int_cover", 10, 2.0, 8.0),
-    ("ocf_ni", 10, 0.5, 1.0),
+    ("int_cover", 10, 2.0, 10.0),
+    ("ocf_ni", 10, 0.5, 1.1),
     ("fcf_pos", 5, 0.0, 1.0),
     ("margin_trend", 5, -3.0, 1.0),
 ]
 FIN_RULES = [
-    ("roe", 40, 8.0, 16.0),
-    ("roa", 20, 0.5, 1.5),
-    ("ni_cagr", 15, 0.0, 15.0),
-    ("rev_cagr", 10, 0.0, 12.0),
-    ("consistency", 15, 0.0, 1.0),
+    ("roe", 30, 8.0, 18.0),
+    ("roa", 20, 0.5, 2.0),
+    ("ni_cagr", 15, 0.0, 20.0),
+    ("rev_cagr", 10, 0.0, 15.0),
+    ("consistency", 10, 0.0, 1.0),
+    ("eq_assets", 15, 6.0, 12.0),    # equity / total assets: a rough capital-strength measure for lenders
 ]
 
 
@@ -174,6 +182,8 @@ def compute_metrics(tk):
     if np.isnan(m["roe"]) and info.get("returnOnEquity") is not None:
         m["roe"] = float(info["returnOnEquity"]) * 100
     m["roa"] = last_mean(ratio(ni, ta) * 100)
+    ea = ratio(eq, ta) * 100
+    m["eq_assets"] = float(ea.iloc[-1]) if len(ea) else np.nan
 
     if len(cl) and len(ta):
         ce = pd.concat([ta, cl], axis=1, join="inner").dropna()
@@ -232,10 +242,15 @@ def lin(x, lo, hi, pts):
 
 def score_stock(m):
     rules = FIN_RULES if m["is_fin"] else NONFIN_RULES
+    if is_finance_arm(m):
+        rules = [r for r in rules if r[0] not in FINANCE_ARM_SKIP]
     total_max = sum(r[1] for r in rules)
     earned, avail = 0.0, 0.0
     for name, pts, lo, hi in rules:
-        p = lin(m.get(name), lo, hi, pts)
+        v = m.get(name)
+        if name == "ni_cagr" and v is not None and not np.isnan(v):
+            v = min(v, NI_CAGR_CAP)
+        p = lin(v, lo, hi, pts)
         if p is not None:
             earned += p
             avail += pts
@@ -244,9 +259,15 @@ def score_stock(m):
     return score, coverage
 
 
-def grade(score):
+def is_finance_arm(m):
+    return m.get("ticker") in FINANCE_ARM_TICKERS
+
+
+def grade(score, n_flags=0):
     if np.isnan(score):
         return "-"
+    if score >= GRADE_APLUS and n_flags == 0:
+        return "A+"
     return "A" if score >= GRADE_A else "B" if score >= GRADE_B else "C" if score >= GRADE_C else "D"
 
 
@@ -264,19 +285,30 @@ def red_flags(m):
     if not m["is_fin"]:
         if below("roce", FLAG_ROCE_MIN):
             f.append("Low ROCE")
-        if above("de", FLAG_DE_MAX):
-            f.append("High debt")
-        if below("int_cover", FLAG_INT_COVER_MIN):
-            f.append("Thin interest cover")
-        if below("ocf_ni", FLAG_OCF_NI_MIN):
-            f.append("Cash lags profit")
-        if m.get("fcf_pos") == 0.0:
-            f.append("Negative FCF")
+        if not is_finance_arm(m):
+            if above("de", FLAG_DE_MAX):
+                f.append("High debt")
+            if below("int_cover", FLAG_INT_COVER_MIN):
+                f.append("Thin interest cover")
+            if below("ocf_ni", FLAG_OCF_NI_MIN):
+                f.append("Cash lags profit")
+            if m.get("fcf_pos") == 0.0:
+                f.append("Negative FCF")
     if below("rev_cagr", 0.0):
         f.append("Sales shrinking")
     if below("ni_last_growth", 0.0):
         f.append("Profit fell last year")
     return f
+
+
+def notes_for(m):
+    """Neutral context shown beside the score (not red flags)."""
+    n = []
+    if not np.isnan(m.get("ni_cagr", np.nan)) and m["ni_cagr"] > LOW_BASE_CAGR:
+        n.append("Low-base growth (score capped)")
+    if is_finance_arm(m):
+        n.append("Debt and cash flow left out: accounts include a finance arm")
+    return n
 
 
 # ============================================================
@@ -313,8 +345,9 @@ def build_table(rows):
     df = pd.DataFrame(rows)
     sc = df.apply(score_stock, axis=1, result_type="expand")
     df["score"], df["coverage"] = sc[0], sc[1]
-    df["grade"] = df["score"].apply(grade)
     df["flags"] = [", ".join(red_flags(r)) for r in rows]
+    df["notes"] = ["; ".join(notes_for(r)) for r in rows]
+    df["grade"] = [grade(sc_, 1 if fl else 0) for sc_, fl in zip(df["score"], df["flags"])]
     df["ok"] = (df["coverage"] >= MIN_COVERAGE) & df["score"].notna()
     return df
 
@@ -328,18 +361,19 @@ def fmt(x, nd=1, suffix=""):
 
 def table_html(sub):
     head = ("Ticker", "Sector", "Score", "Grade", "ROCE / ROA", "ROE", "Sales CAGR", "Profit CAGR",
-            "Debt/Equity", "Cash/Profit", "Red flags")
+            "Debt/Equity (lenders: equity/assets)", "Cash/Profit", "Red flags", "Notes")
     th = "".join(f'<th style="text-align:left;padding:3px 6px;border-bottom:1px solid #999;">{h}</th>' for h in head)
     body = ""
     for _, r in sub.iterrows():
         rc = fmt(r["roa"], 1, "% ROA") if r["is_fin"] else fmt(r["roce"], 1, "%")
         cells = [r["ticker"].replace(".NS", ""), (r["sector"] or "-")[:22], fmt(r["score"], 0), r["grade"], rc,
                  fmt(r["roe"], 1, "%"), fmt(r["rev_cagr"], 1, "%"), fmt(r["ni_cagr"], 1, "%"),
-                 "-" if r["is_fin"] else fmt(r["de"], 2), "-" if r["is_fin"] else fmt(r["ocf_ni"], 2),
-                 r["flags"] or "none"]
+                 fmt(r["eq_assets"], 1, "% eq/assets") if r["is_fin"] else fmt(r["de"], 2),
+                 "-" if r["is_fin"] else fmt(r["ocf_ni"], 2), r["flags"] or "none", r["notes"] or ""]
         color = "#a00" if r["flags"] else "#000"
-        td = "".join(f'<td style="padding:3px 6px;border-bottom:1px solid #eee;">{c}</td>' for c in cells[:-1])
-        td += f'<td style="padding:3px 6px;border-bottom:1px solid #eee;color:{color};">{cells[-1]}</td>'
+        td = "".join(f'<td style="padding:3px 6px;border-bottom:1px solid #eee;">{c}</td>' for c in cells[:-2])
+        td += f'<td style="padding:3px 6px;border-bottom:1px solid #eee;color:{color};">{cells[-2]}</td>'
+        td += f'<td style="padding:3px 6px;border-bottom:1px solid #eee;color:#666;">{cells[-1]}</td>'
         body += f"<tr>{td}</tr>"
     return f'<table style="border-collapse:collapse;font-size:12px;"><tr>{th}</tr>{body}</table>'
 
@@ -347,7 +381,7 @@ def table_html(sub):
 def build_email_html(df, n_requested):
     ok = df[df["ok"]].sort_values("score", ascending=False)
     bad = df[~df["ok"]]
-    a, b = ok[ok["grade"] == "A"], ok[ok["grade"] == "B"]
+    ap, a, b = ok[ok["grade"] == "A+"], ok[ok["grade"] == "A"], ok[ok["grade"] == "B"]
     c, d = (ok["grade"] == "C").sum(), (ok["grade"] == "D").sum()
 
     warns = []
@@ -363,9 +397,10 @@ def build_email_html(df, n_requested):
 
     html = f"""<html><body style="font-family:Arial,sans-serif;">
 <h2>Quality Tracker, {datetime.now().strftime('%d %b %Y')}</h2>
-<p style="font-size:13px;">{len(ok)} stocks scored: <b>{len(a)} grade A</b>, <b>{len(b)} grade B</b>, {c} grade C, {d} grade D.
+<p style="font-size:13px;">{len(ok)} stocks scored: <b>{len(ap)} grade A+</b>, <b>{len(a)} grade A</b>, <b>{len(b)} grade B</b>, {c} grade C, {d} grade D.
 {len(bad)} could not be scored (not enough data). This is a quality filter, not a buy signal: use it to choose which stocks
 deserve your time, then use the Momentum and Earnings trackers for timing.</p>{warn_html}
+<h3>Grade A+: the strongest, with no red flags ({len(ap)})</h3>{table_html(ap) if len(ap) else '<p>None.</p>'}
 <h3>Grade A: strong businesses ({len(a)})</h3>{table_html(a) if len(a) else '<p>None.</p>'}
 <h3>Grade B: good, with some gaps ({len(b)})</h3>{table_html(b) if len(b) else '<p>None.</p>'}
 """
@@ -377,20 +412,25 @@ deserve your time, then use the Momentum and Earnings trackers for timing.</p>{w
 <h3>How the score works</h3>
 <table style="border-collapse:collapse;font-size:12px;">
 <tr><td style="padding:3px 8px;"><b>Operating companies (100 points)</b></td><td style="padding:3px 8px;">
-Profitability 30 (ROCE 15, ROE 15) + Growth 30 (sales CAGR 10, profit CAGR 10, years of profit growth 10) +
+Profitability 30 (ROCE 15, ROE 15) + Growth 30 (sales CAGR 10, profit CAGR 10 with credit capped at 30%, years of profit growth 10) +
 Balance sheet 20 (debt/equity 10, interest cover 10) + Cash quality 20 (operating cash / profit 10, free cash flow positive 5,
 operating margin trend 5)</td></tr>
 <tr><td style="padding:3px 8px;"><b>Banks and lenders (100 points)</b></td><td style="padding:3px 8px;">
-ROE 40 + ROA 20 + profit CAGR 15 + sales CAGR 10 + years of profit growth 15</td></tr>
+ROE 30 + ROA 20 + profit CAGR 15 + sales CAGR 10 + years of profit growth 10 + capital strength (equity / total assets) 15.
+Loan quality (bad loans) is not available from this data source, so a lender's score does not reflect it.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Full marks at</b></td><td style="padding:3px 8px;">
-ROCE 20%+, ROE 18%+ (16%+ for lenders), sales and profit growth 15%+ a year, debt/equity 0.3 or less, interest cover 8x+,
-cash flow equal to profit or better. Zero points at the low end of each range (for example ROCE 8%).</td></tr>
-<tr><td style="padding:3px 8px;"><b>Grades</b></td><td style="padding:3px 8px;">A: 70+, B: 55 to 70, C: 40 to 55, D: below 40.
+ROCE 25%+, ROE 22%+ (18%+ for lenders, ROA 2%+), sales and profit growth 20%+ a year, debt/equity 0.3 or less, interest cover 10x+,
+cash flow 1.1x profit or better, equity/assets 12%+ for lenders. Zero points at the low end of each range (for example ROCE 10%).</td></tr>
+<tr><td style="padding:3px 8px;"><b>Grades</b></td><td style="padding:3px 8px;">A+: 85+ with no red flags, A: 70 to 85, B: 55 to 70, C: 40 to 55, D: below 40.
 Averages use the last 3 years. If some metrics are missing, the score is rescaled over those available, and stocks with under
 60% of the score available are not graded.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Red flags</b></td><td style="padding:3px 8px;">
 ROE below 8%; ROCE below 10%; debt/equity above 1.5; interest cover below 2.5; cash flow below 60% of profit;
 negative free cash flow; sales shrinking over the period; profit fell last year.</td></tr>
+<tr><td style="padding:3px 8px;"><b>Notes</b></td><td style="padding:3px 8px;">
+<b>Low-base growth</b>: profit CAGR above 60%, usually from a very low starting year, so the score gives no credit above 30%.
+<b>Finance arm</b>: for companies whose accounts include a lending arm (set in FINANCE_ARM_TICKERS), debt and cash-flow measures are left out of the score
+because the loan book distorts them.</td></tr>
 </table>
 <p style="font-size:12px;color:#a00;"><b>Limits:</b> data comes from Yahoo Finance and is sometimes wrong or missing for Indian companies, so check anything
 you plan to act on against the company's own results. Promoter holding, pledging and one-off items are not captured.
