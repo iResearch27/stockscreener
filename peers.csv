@@ -56,3 +56,18 @@ CERA,KAJARIACER;Somany Ceramics;NITCO;Pokarna;Varmora Granito,normal
 # --- Type only (no peer list): tracked on EV/EBITDA and P/B, not tagged on P/E,
 GULFOILLUB,,cyclical
 TIINDIA,CRAFTSMAN;ENDURANCE;MOTHERSON,cyclical
+# --- Added after the last Valuation email,,
+HAL,BEL;BDL;DATAPATTNS;Mazagon Dock;Garden Reach Sh.;Cochin Shipyard,normal
+BEL,HAL;BDL;DATAPATTNS;Mazagon Dock;Garden Reach Sh.;Cochin Shipyard,normal
+BDL,HAL;BEL;DATAPATTNS;Mazagon Dock;Garden Reach Sh.;Cochin Shipyard,normal
+DATAPATTNS,HAL;BEL;BDL;Mazagon Dock;Garden Reach Sh.;Cochin Shipyard;Astra Microwave,normal
+SKYGOLD,TITAN;KALYANKJIL;SENCO;THANGAMAYL;PNGJL,normal
+GOLDIAM,TITAN;KALYANKJIL;SENCO;THANGAMAYL;PNGJL,normal
+UNITDSPR,RADICO;United Breweries;Tilaknagar Inds.;Allied Blenders,normal
+TATAELXSI,Persistent Systems;Mphasis;KPIT Technologi.;LTTS;CYIENT;Hexaware Tech.,normal
+CYIENT,Persistent Systems;Mphasis;KPIT Technologi.;LTTS;TATAELXSI;Hexaware Tech.,normal
+LTTS,Persistent Systems;Mphasis;KPIT Technologi.;CYIENT;TATAELXSI;Hexaware Tech.,normal
+BLUESTARCO,VOLTAS;HAVELLS;CROMPTON;Whirlpool India;Orient Electric,normal
+KEI,Polycab India;FINCABLES;HAVELLS,normal
+TEXRAIL,TITAGARH;RVNL;IRCON;Jupiter Wagons;I R C T C,normal
+TECHNOE,A B B;GE Vernova T&D;SIEMENS;VOLTAMP;ELECON;Kalpataru Proj.,normal
