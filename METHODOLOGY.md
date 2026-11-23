@@ -9,6 +9,8 @@ and the known limitations, so the logic can be rebuilt or tuned later.
 2. Turnaround screener: Early and Confirmed scoring
 3. Confirmed Uptrend tracker
 3a. Momentum tracker
+3b. Quality tracker (fundamentals)
+3c. Earnings tracker
 4. TradingView Pine Script dashboard
 5. Automation and schedules
 6. Repo layout and operating notes
@@ -24,7 +26,9 @@ and the known limitations, so the logic can be rebuilt or tuned later.
 | Turnaround screener (`screener.py`) | Catch stocks turning up from a downtrend, ideally before the obvious crossovers | GitHub Actions | Email table |
 | Confirmed Uptrend tracker (`uptrend_tracker.py`) | Find stocks already in a sustained, strong uptrend | GitHub Actions | Email table |
 | Momentum tracker (`momentum_tracker.py`) | Give every stock one momentum state (Emerging, Building, Strong, Extended, Fading, Dormant, Neutral) with a suggested action; helps discovery and entry timing | GitHub Actions | Email grouped by state |
-| Momentum backtests (`backtest_momentum.py`, `backtest_momentum_2.py`) | Replays the momentum states over about 5 years to measure what each state went on to do and how early it appears at real turning points | GitHub Actions (manual only) | Email with tables |
+| Momentum backtests (`backtest_momentum.py`, `_2.py`, `_3.py`) | Replays the momentum states over about 5 years to measure what each state went on to do and how early it appears at real turning points | GitHub Actions (manual only) | Email with tables |
+| Quality tracker (`quality_tracker.py`) | Score each stock 0 to 100 on business quality (returns, growth, balance sheet, cash quality) with a grade and red flags | GitHub Actions (weekly) | Email grouped by grade |
+| Earnings tracker (`earnings_tracker.py`) | Show latest quarterly results, results due soon, and whether the price has reacted | GitHub Actions (daily) | Email with results tables |
 | Pine Script dashboard (TradingView) | Same turnaround logic as a live on-chart table, up to 40 stocks | TradingView | Table + optional alert |
 | Keep Repo Active (`keepalive.yml`) | Stops GitHub pausing scheduled workflows after 60 days of no commits | GitHub Actions | A monthly commit |
 
@@ -108,7 +112,7 @@ The email also shows "Avg Vol (20d)".
 ### 2.5 Data handling
 
 - Source: `yfinance` (Yahoo Finance), 2 years of daily bars, split/dividend adjusted.
-- Tickers use Yahoo format with the `.NS` suffix for NSE (e.g. `RELIANCE.NS`), listed in `stocks.txt`.
+- Tickers use Yahoo format with the `.NS` suffix for NSE (e.g. `RELIANCE.NS`), listed in `watchlist.txt` (the one shared list).
 - Downloaded in batches of 50 with one retry after a 5-second wait and a 1-second pause between batches.
 - A ticker with fewer than 210 rows of history is skipped and logged as "Skipping ...".
 
@@ -138,7 +142,7 @@ The benchmark is the Nifty 50 (`^NSEI`).
   The email adds a "Pullback to SMA50 (entry watch)" table (SMA50, % vs SMA50, % off 20d high) and a Pullback column.
   Constants: `PULLBACK_ABOVE_PCT`, `PULLBACK_BELOW_PCT`, `PULLBACK_MIN_DROP_PCT`, `SMA50_SLOPE_DAYS`.
   A pullback can still turn into a trend break, so a stop below the SMA50 is sensible.
-- Watchlist is separate from the turnaround screener: `uptrend_watchlist.txt` (same ticker format).
+- Watchlist: the shared `watchlist.txt` (same ticker format).
 - A ticker with fewer than 260 rows of history is skipped (it needs about a year for the 52-week high and SMA200).
 - Tunable constants at the top of `uptrend_tracker.py`: `NEAR_52WK_PCT`, `SUSTAINED_DAYS`, `SWING_LOOKBACK`, `RS_LOOKBACK`, `RSI_SUSTAIN_DAYS`.
 - Bug fixed during setup: newer `yfinance` versions return multi-level column names even for one ticker,
@@ -150,7 +154,7 @@ The benchmark is the Nifty 50 (`^NSEI`).
 
 Answers "does this stock have the right amount of momentum right now?" For a stock you like, the ideal is
 early-to-mid momentum (the market starting to notice it), not maximum momentum (already run). Every stock
-gets one state. It reads `uptrend_watchlist.txt` (the larger list) and ranks stocks against each other,
+gets one state. It reads the shared `watchlist.txt` and ranks stocks against each other,
 so it needs the whole list scored in one run. Run schedule: 4:10 PM IST, Monday to Friday (`momentum_tracker.yml`).
 
 **Inputs**
@@ -212,7 +216,7 @@ track, so a weak list gives flattering ranks; states are a sorting aid, not a tr
 
 ### 3a.1 Momentum backtest (added Nov 2026)
 
-`backtest_momentum.py` replays the momentum states over about 5 years for the stocks in `uptrend_watchlist.txt`, calling the same
+`backtest_momentum.py` replays the momentum states over about 5 years for the stocks in `watchlist.txt`, calling the same
 functions as the live tracker so the rules cannot drift apart. Run it manually: Actions -> Momentum Backtest -> Run workflow
 (`backtest_momentum.yml`, about 10 to 20 minutes). Results arrive by email. It runs two variants side by side: the current windows,
 and a faster-window variant (10-day rank change, 10-day volume windows, 5-day SMA50 slope, 10-day "1-month" return, more weight on recent returns).
@@ -241,6 +245,7 @@ with the live functions, stores the metrics, and evaluates many candidate rules 
 - **Edge** = average over dates of (rule's average forward return minus all-stocks average on the same date), at 21 and 63 trading days. This removes market-wide moves.
 - **t-statistic** (rough) with a correction for overlapping observations; above about +2 or below -2 suggests the edge is unlikely to be luck.
 - **Risk:** average worst fall from entry within the next 63 days, and the share of observations where that fall exceeded 15%.
+  The table starts with an all-liquid-stocks baseline row so the risk columns can be compared with the average stock.
 - **Honesty checks:** results split into a first half and a second half ("Holds in both halves?" is Yes only if the edge is positive at both horizons in both halves),
   and into up markets and down markets (Nifty's own 3-month return positive or not).
 - **Candidates:** current states and flags (including Stabilizing and Pullback to SMA50), six tighter versions of Building, and simple alternatives
@@ -248,6 +253,100 @@ with the live functions, stores the metrics, and evaluates many candidate rules 
 
 Limits as for the first backtest, plus: testing many rules raises the chance that one looks good by luck, so prefer rules that hold in both halves, have a clearly
 positive t, and make sense on their own. Do not tune the live tracker on this report alone.
+
+---
+
+### 3a.3 Momentum backtest #3: can relative strength find winners early? (added Nov 2026)
+
+`backtest_momentum_3.py` (workflow `backtest_momentum_3.yml`, manual, about 10 to 15 minutes; needs `backtest_momentum_2.py` in the repo) follows up backtest #2,
+where the recovery states (Building, Emerging) showed no edge and more downside, and "top 20% by RS rank" was the only rule with a t-score near 2
+(its edge faded in the second half). It reuses #2's replay and statistics (edge versus all stocks on the same date, rough t-score, worst fall within 63 days
+with a baseline row, first half versus second half, up versus down markets) on about 20 relative-strength rules:
+
+- **Quintiles of RS rank** (below 20, 20-40, 40-60, 60-80, 80+): relative strength is only convincing if performance rises step by step with rank.
+- **Early leaders:** just entered the top 20% (rank jump over 21 or 10 days), rising through the ranks, long-standing leaders (for comparison).
+- **52-week-high ideas:** within 3% of the high, within 5% with RS rank 70+, a fresh 52-week breakout (last 5 days) alone, with a volume surge (5-day volume 1.5x the 50-day), and with RS rank 70+.
+- **Leader refinements:** leader not yet Extended, leader and Extended, leader near the SMA50, leader with a smooth trend (trend quality above 30), leader with a volume surge, leader beating Nifty with a positive 6-month return.
+
+Because about 20 rules are tested, treat a |t| below about 3 as suggestive only. Backtest #2's replay now also stores 52-week-high distance, a 5-day breakout flag, a volume ratio and earlier RS ranks.
+
+---
+
+## 3b. Quality tracker (added Nov 2026)
+
+**Question answered:** is this a fundamentally strong business, one worth holding through a pullback? It is a filter for
+choosing which stocks deserve attention, not a buy signal. The Momentum and Earnings trackers handle timing.
+
+**Data:** annual income statement, balance sheet and cash flow from Yahoo Finance, usually 3 to 4 years. Runs weekly
+(Saturday 5:00 PM IST), because fundamentals only change when companies report. Reads `watchlist.txt` and also
+writes `quality_scores.csv` on the runner.
+
+**Operating companies (100 points):**
+
+| Pillar | Metric | Points | 0 points at | Full points at |
+|---|---|---|---|---|
+| Profitability (30) | ROCE (EBIT / (total assets - current liabilities)), 3-year average | 15 | 8% | 20% |
+| | ROE (net profit / equity), 3-year average | 15 | 8% | 18% |
+| Growth (30) | Sales CAGR | 10 | 0% | 15% |
+| | Profit CAGR | 10 | 0% | 15% |
+| | Share of years with profit growth | 10 | 0 | all |
+| Balance sheet (20) | Debt / equity (lower is better) | 10 | 1.5 | 0.3 |
+| | Interest cover (EBIT / interest, capped at 20) | 10 | 2x | 8x |
+| Cash quality (20) | Operating cash flow / profit (profit years only) | 10 | 0.5 | 1.0 |
+| | Free cash flow positive in the latest year | 5 | no | yes |
+| | Operating margin change over the period | 5 | -3 points | +1 point |
+
+**Banks and other lenders (100 points):** debt, ROCE and cash flow do not mean the same thing for a lender, so they are scored on
+ROE 40 (8% to 16%), ROA 20 (0.5% to 1.5%), profit CAGR 15, sales CAGR 10 and years of profit growth 15. Insurers are scored as
+operating companies.
+
+**Scoring rules:** points scale linearly between the two ends and are clipped. If some metrics are missing, the score is rescaled over
+the ones available. A stock with under 60% of the score computable is listed as "not scored" instead of being graded.
+Grades: A 70+, B 55 to 70, C 40 to 55, D below 40.
+
+**Red flags:** ROE below 8%; ROCE below 10%; debt/equity above 1.5; interest cover below 2.5; operating cash flow under 60% of
+profit; negative free cash flow; sales shrinking over the period; profit fell in the latest year.
+
+**Limits:** Yahoo's coverage of Indian companies is patchy and sometimes wrong, especially for small caps. Promoter holding,
+pledging and one-off items are not captured. Three to four years is a short history. All weights and cut-offs are starting values,
+not backtested. Fundamentals are hard to backtest properly because that needs the figures known on each past date, not today's
+restated ones.
+
+---
+
+## 3c. Earnings tracker (added Nov 2026)
+
+**Question answered:** what were the latest results, and has the market priced them in yet? Runs Monday to Friday at 4:30 PM IST.
+
+**Result quality** is judged from actual growth against the same quarter last year (from Yahoo's quarterly statements), not against
+analyst estimates, because Yahoo has estimates for few Indian stocks.
+
+| Result | Rule |
+|---|---|
+| Strong | Sales up 10%+ and profit up 15%+, operating margin not down more than 100 bps (skipped when the margin is unavailable, as for banks), or the company turned profitable with sales up 5%+ |
+| Good | Sales up 5%+ and profit up 5%+ |
+| Weak | Profit or sales fell, or the company made a loss |
+| Mixed | Everything else (not listed) |
+
+**Price context** uses the result date from Yahoo's earnings calendar:
+- **Reaction (1d):** close one trading day after the result date versus the close before it.
+- **Since result:** latest close versus the close before the result date.
+- **Run-up before:** gain in the 20 trading days before the result.
+- **Trend:** above or below the SMA200.
+
+**Sections in the email:**
+1. Results due in the next 14 days, with the 1-month return and last quarter's quality. A stock that already ran up needs a better-than-expected result to rise further.
+2. Strong or good results with a **muted** price reaction: price up less than 5% and down less than 3% since results, and not below the SMA200. This is a research list based on the idea of post-earnings drift (prices sometimes keep adjusting for weeks after good news). It is not a buy signal, and the first step is to find out why the market is not reacting.
+3. All strong and good results, with notes **Sold on good news** (down 3%+ after the result) and **Ran before results** (up 10%+ in the prior 20 days).
+4. Weak results.
+5. Stocks that have not yet reported the latest quarter.
+
+**"Reported" test:** the current cycle is the most recent quarter-end among stocks that reported within the last 130 days. A stock counts as
+reported if its latest quarter ends within 20 days of that.
+
+**Limits:** yearly comparison needs 5 quarters of data and Yahoo sometimes gives only 4, so those stocks are left out. The results calendar is
+missing for some stocks, so reaction shows as "-". A strong quarter can come from one-off gains and does not make a strong stock, so check the
+Quality tracker and the company's own results. Thresholds are starting values, not backtested.
 
 ---
 
@@ -283,8 +382,11 @@ best-effort and can run a few minutes late.
 | `daily_screener.yml` | Turnaround screener, Mon-Fri 4:00 PM IST | `30 10 * * 1-5` |
 | `uptrend_tracker.yml` | Uptrend tracker, Mon-Fri 4:00 PM IST | `30 10 * * 1-5` |
 | `momentum_tracker.yml` | Momentum tracker, Mon-Fri 4:10 PM IST | `40 10 * * 1-5` |
+| `quality_tracker.yml` | Quality tracker, Saturday 5:00 PM IST | `30 11 * * 6` |
+| `earnings_tracker.yml` | Earnings tracker, Mon-Fri 4:30 PM IST | `0 11 * * 1-5` |
 | `backtest_momentum.yml` | Momentum backtest, manual only | `workflow_dispatch` |
 | `backtest_momentum_2.yml` | Momentum backtest #2 (rule edge), manual only | `workflow_dispatch` |
+| `backtest_momentum_3.yml` | Momentum backtest #3 (relative strength), manual only | `workflow_dispatch` |
 | `keepalive.yml` | Monthly commit, 1st of each month 3:00 AM UTC | `0 3 1 * *` |
 
 All workflows can also be run by hand from the Actions tab (**Run workflow**).
@@ -316,25 +418,32 @@ for private repos. Each run takes a few minutes, so usage stays far below that.
 ```
 stockscreener/
   screener.py               turnaround screener
-  momentum_tracker.py       momentum tracker (reads uptrend_watchlist.txt)
+  momentum_tracker.py       momentum tracker (reads watchlist.txt)
   backtest_momentum.py      momentum backtest (manual run)
   backtest_momentum_2.py    backtest #2: edge, risk, halves, regimes (manual run)
-  stocks.txt                watchlist for the turnaround screener
+  backtest_momentum_3.py    backtest #3: relative-strength ideas (manual run; imports #2)
+  quality_tracker.py        quality tracker (weekly; reads watchlist.txt)
+  earnings_tracker.py       earnings tracker (daily; imports momentum_tracker.py)
+  watchlist.txt             the ONE watchlist read by every tracker and backtest
   uptrend_tracker.py        confirmed uptrend tracker
-  uptrend_watchlist.txt     watchlist for the uptrend tracker
-  requirements.txt          yfinance, pandas, numpy
+  requirements.txt          yfinance, pandas, numpy, lxml
   README.txt                setup steps
   METHODOLOGY.md            this document
   .github/workflows/
     daily_screener.yml
     uptrend_tracker.yml
     momentum_tracker.yml
+    quality_tracker.yml
+    earnings_tracker.yml
     backtest_momentum.yml
     backtest_momentum_2.yml
+    backtest_momentum_3.yml
     keepalive.yml
 ```
 
-**Adding stocks:** edit `stocks.txt` or `uptrend_watchlist.txt`, one Yahoo-format ticker per line.
+**Adding stocks:** edit `watchlist.txt` only, one Yahoo-format ticker per line. Every tracker reads it (changed Nov 2026; before that,
+the turnaround screener read `stocks.txt` and the others read `uptrend_watchlist.txt`, so a stock added to one list was missing from the other trackers).
+Duplicates are removed automatically. The Pine Script keeps its own list in the indicator settings.
 Lines starting with `#` and blank lines are ignored. Save as plain text.
 
 **Changing thresholds:** edit the constants at the top of the relevant `.py` file and commit.
@@ -371,7 +480,7 @@ Look for lines starting `Traceback`, and for `Skipping` lines that name dropped 
 - **Data source:** `yfinance` is free but unofficial. It can throttle large requests, return gaps for illiquid
   tickers, or lag after the close. Missing tickers show up as "Skipping" lines in the run log.
 - **No market-holiday awareness.** On NSE holidays the workflows still run and email the last available close.
-- **Technicals only.** Neither tracker looks at fundamentals, news, regulatory events or company-specific risks.
+- **Technicals only (turnaround, uptrend, momentum).** These trackers do not look at fundamentals, news or company-specific risks. The Quality and Earnings trackers cover fundamentals, with the data limits described in sections 3b and 3c.
 - **Equal weighting.** Every condition counts as one point; none is weighted as more important.
 - This is a screening aid, not investment advice.
 

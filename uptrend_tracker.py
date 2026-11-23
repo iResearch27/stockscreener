@@ -21,7 +21,7 @@ import yfinance as yf
 # ============================================================
 # CONFIG
 # ============================================================
-STOCKS_FILE = "uptrend_watchlist.txt"
+STOCKS_FILE = "watchlist.txt"   # one shared list for all trackers
 BENCHMARK_TICKER = "^NSEI"   # Nifty 50 index
 LOOKBACK_PERIOD = "2y"       # need 252+ trading days for 52-week high + SMA200
 BATCH_SIZE = 50
@@ -44,8 +44,15 @@ SMA50_SLOPE_DAYS = 10         # SMA50 must be higher than it was this many days 
 # DATA FETCH
 # ============================================================
 def load_tickers(path):
+    """One ticker per line; blank lines and # comments ignored; duplicates removed (first one kept)."""
+    seen, out = set(), []
     with open(path) as f:
-        return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+        for line in f:
+            t = line.strip().upper()
+            if t and not t.startswith("#") and t not in seen:
+                seen.add(t)
+                out.append(t)
+    return out
 
 
 def fetch_data(tickers, batch_size=BATCH_SIZE):

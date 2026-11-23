@@ -50,6 +50,7 @@ KEEP_COLS = [
     "participation", "participation_fast", "ret_1m", "ret_3m", "ret_6m", "ret_fast", "pct_above_sma50",
     "vs_nifty", "stabilizing", "above_sma20", "trend_quality", "rsi",
     "sma50_gt_200", "c_gt_200", "sma50_rising", "off_peak_pct",
+    "rs_rank_prev", "rs_rank_prev_fast", "pct_from_52w_high", "breakout_5d", "vol_ratio",
 ]
 
 
@@ -62,7 +63,13 @@ def extra_metrics(sl):
     sma200 = close.rolling(200).mean()
     c = float(close.iloc[-1])
     peak20 = float(close.tail(20).max())
+    high252 = float(close.tail(252).max())
+    prior_high = float(close.iloc[-252:-5].max())            # highest close of the year before the last 5 days
+    vol = sl["Volume"]
     return {
+        "pct_from_52w_high": (high252 - c) / high252 * 100,
+        "breakout_5d": bool(close.tail(5).max() > prior_high),   # a new 52-week high within the last 5 days
+        "vol_ratio": float(vol.tail(5).mean() / vol.tail(50).mean()) if vol.tail(50).mean() > 0 else np.nan,
         "sma50_gt_200": bool(sma50.iloc[-1] > sma200.iloc[-1]),
         "c_gt_200": bool(c > sma200.iloc[-1]),
         "sma50_rising": bool(sma50.iloc[-1] > sma50.iloc[-1 - m.TREND_SLOPE_DAYS]),
@@ -221,17 +228,25 @@ def verdict(h1, h2):
     return "Yes" if all(v > 0 for v in vals) else "No"
 
 
-def build_report(obs, dates, n_stocks):
+def build_report(obs, dates, n_stocks, groups=None, core=None):
+    groups = GROUPS if groups is None else groups
+    core = CORE if core is None else core
     liquid = obs[obs.liquid]
     split = pd.Timestamp(pd.Series(dates).quantile(0.5, interpolation="nearest"))
     first, second = liquid[liquid.date <= split], liquid[liquid.date > split]
 
     main_rows, half_rows, regime_rows, groups_idx = {}, {}, {}, []
+
+    # Baseline row: every liquid stock, so the risk columns can be compared with the average stock.
+    base_row = full_stats(liquid, liquid)
+    base_row["Holds in both halves?"] = "-"
+    main_rows["All liquid stocks (baseline)"] = base_row
+    groups_idx.append(("Baseline", ["All liquid stocks (baseline)"]))
     nifty63 = (liquid["ret_3m"] - liquid["vs_nifty"]).groupby(liquid["date"]).median()
     up_dates = set(nifty63[nifty63 > 0].index)
     up, down = liquid[liquid.date.isin(up_dates)], liquid[~liquid.date.isin(up_dates)]
 
-    for group, rules in GROUPS:
+    for group, rules in groups:
         names = []
         for name, fn in rules:
             mask = fn(liquid).fillna(False)
@@ -245,7 +260,7 @@ def build_report(obs, dates, n_stocks):
             main_rows[name] = row
             half_rows[name] = {"1st half Obs": h1[0], "1st half Edge 21d": h1[1], "1st half Edge 63d": h1[2],
                                "2nd half Obs": h2[0], "2nd half Edge 21d": h2[1], "2nd half Edge 63d": h2[2]}
-            if name in CORE:
+            if name in core:
                 u = split_stats(up[fn(up).fillna(False)], up)
                 dn = split_stats(down[fn(down).fillna(False)], down)
                 regime_rows[name] = {"Up-mkt Obs": u[0], "Up-mkt Edge 21d": u[1], "Up-mkt Edge 63d": u[2],
@@ -259,7 +274,8 @@ def build_report(obs, dates, n_stocks):
     return main_df, half_df, regime_df, groups_idx, split
 
 
-def render_html(main_df, half_df, regime_df, groups_idx, split, n_stocks, n_dates, span):
+def render_html(main_df, half_df, regime_df, groups_idx, split, n_stocks, n_dates, span,
+                title="Momentum Backtest #2: which rules have an edge?", intro_html=""):
     sections = ""
     for group, names in groups_idx:
         if not names:
@@ -274,7 +290,8 @@ def render_html(main_df, half_df, regime_df, groups_idx, split, n_stocks, n_date
 
     return f"""
     <html><body style="font-family: Arial, sans-serif;">
-    <h1>Momentum Backtest #2: which rules have an edge? — {datetime.now().strftime('%d %b %Y')}</h1>
+    <h1>{title} — {datetime.now().strftime('%d %b %Y')}</h1>
+    {intro_html}
     <p>{n_stocks} stocks, {n_dates} evaluation dates (every {STEP} trading days), {span}. Liquid stocks only.
     Split point between the two halves: {split.strftime('%d %b %Y')}.</p>
 

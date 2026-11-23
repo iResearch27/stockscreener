@@ -30,7 +30,7 @@ import yfinance as yf
 # ============================================================
 # CONFIG
 # ============================================================
-STOCKS_FILE = "uptrend_watchlist.txt"   # shares the Uptrend tracker's (larger) watchlist
+STOCKS_FILE = "watchlist.txt"   # one shared list for all trackers
 BENCHMARK_TICKER = "^NSEI"
 LOOKBACK_PERIOD = "2y"
 BATCH_SIZE = 50
@@ -128,8 +128,15 @@ STATE_GUIDE = [
 # DATA FETCH
 # ============================================================
 def load_tickers(path):
+    """One ticker per line; blank lines and # comments ignored; duplicates removed (first one kept)."""
+    seen, out = set(), []
     with open(path) as f:
-        return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+        for line in f:
+            t = line.strip().upper()
+            if t and not t.startswith("#") and t not in seen:
+                seen.add(t)
+                out.append(t)
+    return out
 
 
 def flatten_columns(df):
