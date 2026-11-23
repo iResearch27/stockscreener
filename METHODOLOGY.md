@@ -379,6 +379,13 @@ Estimated result dates are confined to 7 to 45 days after quarter-end (60 days a
 new **Lagging** list shows good results with the price down 3%+ since but still above the SMA200. Book value changes beyond 40% are flagged as probable splits, bonus issues or demergers.
 Tickers whose price download failed are retried one at a time, without threads (the shared downloader in `momentum_tracker.py` now uses a private yfinance cache, because a locked cache silently dropped Kotak Bank). The Earnings tracker needs only 40 days of prices (the trend shows "-" below 210), so recently re-listed stocks are no longer dropped. Estimated result dates start 21 days after quarter-end. The limited-history table is sorted by EPS growth and tags "EPS up, trend intact" (EPS +15% or more, above the SMA200).
 
+**Screener.in fallback (manual export, added Nov 23):** `screener_import.py` reads `screener_export.xlsx` from the repo root. Screener's own year-on-year quarterly growth
+(Qtr Sales Var %, Qtr Profit Var %) is used for stocks where Yahoo has no year-ago quarter, which grades them like the rest (net profit basis, because the export has no
+quarterly operating profit unless you add it). Where Yahoo does have a number, the two are compared and a note appears when net profit growth differs by 30+ points.
+Stocks are matched by the symbol inside the company link in the .xlsx file (CSV exports have no links and cannot be used). Screener's quarter is accepted only if its quarterly sales agree
+with Yahoo's latest quarter within 25% (not checked for lenders). The email shows which export was used and its date. Export once after most companies have reported
+(late Nov, mid Feb, mid May, mid Aug) and commit it; the daily tracker keeps using the same file until you replace it.
+
 **Limits:** yearly comparison needs 5 quarters of data and Yahoo sometimes gives only 4, so those stocks get the sequential view only. EBITDA is missing
 for some companies, and estimated result dates can be a day off or catch another volume event. A strong quarter can come from one-off gains and does not make a strong stock, so check the
 Quality tracker and the company's own results. Thresholds are starting values, not backtested.

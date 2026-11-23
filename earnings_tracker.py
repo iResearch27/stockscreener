@@ -34,6 +34,7 @@ import pandas as pd
 import yfinance as yf
 
 import momentum_tracker as m
+import screener_import as si
 
 # ============================================================
 # CONFIGURATION
@@ -65,6 +66,8 @@ SOLD_ON_NEWS_PCT = -3.0          # fell more than this after strong results
 RUNUP_DAYS = 20
 RUNUP_PCT = 10.0                 # "already ran" = up this much in the 20 trading days before results
 MIN_ROWS = 210                   # price rows needed for SMA200 (trend shows "-" below this)
+SCREENER_ALIGN_TOL = 0.25        # Yahoo and Screener quarterly sales must agree within this to be the same quarter
+SCREENER_DIFF_PTS = 30.0         # Yahoo net profit growth differs from Screener's by this much: flag it
 MIN_PRICE_ROWS = 40              # price rows needed at all (reaction and drift only)
 
 # Estimating a missing result date from the volume spike
@@ -313,6 +316,47 @@ def estimate_result_date(df, q_end):
         return pd.NaT
 
 
+def apply_screener(rows, sc):
+    """Use Screener.in's year-on-year quarterly growth where Yahoo has none, and cross-check Yahoo where it does.
+
+    Returns (rows, n_filled, n_flagged). Screener's quarter is accepted when its quarterly sales agree with Yahoo's latest
+    quarter (within 25%); lenders skip this check because their 'sales' are defined differently."""
+    n_fill = n_flag = 0
+    if sc is None or sc.empty:
+        return rows, 0, 0
+    for r in rows:
+        r["src_note"] = ""
+        if not r.get("has_data") or r["ticker"] not in sc.index:
+            continue
+        x = sc.loc[r["ticker"]]
+        ys, ss = r.get("rev", np.nan), x.get("sales_cr", np.nan)
+        if not r.get("is_lender") and not np.isnan(ys) and not np.isnan(ss) and ss > 0:
+            if abs(ys / 1e7 / ss - 1) > SCREENER_ALIGN_TOL:
+                r["src_note"] = "Screener quarter does not match Yahoo's: ignored"
+                continue
+        yahoo_core = r.get("op_yoy", np.nan)
+        yahoo_core = r["ni_yoy"] if np.isnan(yahoo_core) else yahoo_core
+        if not r.get("has_yoy") or np.isnan(yahoo_core):
+            ni_s, rev_s = x.get("ni_yoy", np.nan), x.get("rev_yoy", np.nan)
+            if np.isnan(ni_s) and np.isnan(rev_s):
+                continue
+            if np.isnan(r["rev_yoy"]):
+                r["rev_yoy"] = rev_s
+            if np.isnan(r["ni_yoy"]):
+                r["ni_yoy"] = ni_s
+            if np.isnan(r.get("op_yoy", np.nan)) and not np.isnan(x.get("op_yoy", np.nan)):
+                r["op_yoy"] = x["op_yoy"]
+            r["has_yoy"] = True
+            r["src_note"] = "Growth from Screener.in (Yahoo has no year-ago quarter); net profit basis"
+            n_fill += 1
+        else:
+            ni_s = x.get("ni_yoy", np.nan)
+            if not np.isnan(ni_s) and not np.isnan(r["ni_yoy"]) and abs(ni_s - r["ni_yoy"]) >= SCREENER_DIFF_PTS:
+                r["src_note"] = f"Screener net profit {ni_s:+.0f}% vs Yahoo {r['ni_yoy']:+.0f}%: check"
+                n_flag += 1
+    return rows, n_fill, n_flag
+
+
 def latest_cycle_end(rows):
     """The most common latest quarter-end among stocks that have reported recently, as the 'current cycle'."""
     today = pd.Timestamp.now().normalize()
@@ -418,7 +462,7 @@ def trend_s(r):
 def result_rows(sub):
     rows_ = []
     for _, r in sub.iterrows():
-        note = "; ".join(x for x in [r["flag"], r["note_profit"], r["data_note"]] if x) or "-"
+        note = "; ".join(x for x in [r["flag"], r["note_profit"], r["data_note"], r.get("src_note", "")] if x) or "-"
         rows_.append([r["ticker"].replace(".NS", ""), r["quality"], date_s(r["q_end"]),
                       f(r["rev_yoy"], 0, "%", True), f(r["ebitda_yoy"], 0, "%", True), f(r["ebit_yoy"], 0, "%", True),
                       f(r["pbt_yoy"], 0, "%", True),
@@ -518,6 +562,7 @@ same quarter last year, not against analyst estimates.</p>{warn_html}
 <tr><td style="padding:3px 8px;"><b>Good</b></td><td style="padding:3px 8px;">Sales up {GOOD_MIN_REV_YOY:.0f}%+ and operating profit up {GOOD_MIN_OP_YOY:.0f}%+, net profit not down.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Weak</b></td><td style="padding:3px 8px;">Operating profit fell versus last year, or the company made a loss.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Mixed</b></td><td style="padding:3px 8px;">Everything else, for example profit up while sales fell.</td></tr>
+<tr><td style="padding:3px 8px;"><b>Source notes</b></td><td style="padding:3px 8px;"><b>Growth from Screener.in</b>: Yahoo had no year-ago quarter, so Screener's year-on-year sales and net profit growth were used (net profit basis, no operating profit). <b>Screener net profit X% vs Yahoo Y%: check</b>: the two sources disagree by 30+ points, so one has an error or a one-off; check the company's results.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Book value YoY</b></td><td style="padding:3px 8px;">Growth in book value per share (equity if share count is missing) over the year, from Yahoo's latest balance sheet, which can be older than the quarter. The key growth measure for banks and lenders.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Declared</b></td><td style="padding:3px 8px;">Result date from Yahoo. A date with "~" is estimated from the volume spike and may be a day off.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Reaction (1d)</b></td><td style="padding:3px 8px;">Price change from the close before the result date to the close one trading day after it. Results announced after market hours show up the next day, so one day catches both cases.</td></tr>
@@ -551,6 +596,12 @@ def main():
         print("No results data, no email.")
         return
 
+    sc, sc_info = si.load_screener()
+    print("Screener.in export:", sc_info)
+    rows, n_fill, n_flag = apply_screener(rows, sc)
+    if len(sc):
+        print(f"Screener.in: {n_fill} stocks graded from Screener data, {n_flag} Yahoo figures flagged as different")
+
     df, cycle_end = build_universe(rows, data)
     no_data = [r["ticker"] for r in rows if not r.get("has_data")]
     full = df
@@ -578,6 +629,9 @@ def main():
         print("WARNING:", w)
 
     html = build_email_html(df, cycle_end, len(tickers), n_with, warns, not_analysed, limited)
+    src_line = (f'<p style="font-size:12px;">Screener.in export used: {sc_info}. {n_fill} stocks graded from it, {n_flag} Yahoo figures flagged as different.</p>'
+                if len(sc) else f'<p style="font-size:12px;color:#a00;">Screener.in export not used: {sc_info}.</p>')
+    html = html.replace("</body></html>", src_line + "</body></html>")
     flag = " [CHECK DATA]" if warns else ""
     m.send_email(f"Earnings Tracker, {datetime.now().strftime('%d %b %Y')}{flag}", html)
 
