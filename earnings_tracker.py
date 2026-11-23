@@ -34,7 +34,10 @@ import pandas as pd
 import yfinance as yf
 
 import momentum_tracker as m
-import screener_import as si
+try:
+    import screener_import as si
+except ImportError:          # file not uploaded to the repo: run without the Screener.in fallback
+    si = None
 
 # ============================================================
 # CONFIGURATION
@@ -596,7 +599,10 @@ def main():
         print("No results data, no email.")
         return
 
-    sc, sc_info = si.load_screener()
+    if si is None:
+        sc, sc_info = pd.DataFrame(), "screener_import.py is not in the repo"
+    else:
+        sc, sc_info = si.load_screener()
     print("Screener.in export:", sc_info)
     rows, n_fill, n_flag = apply_screener(rows, sc)
     if len(sc):
