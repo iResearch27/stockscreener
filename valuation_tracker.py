@@ -302,6 +302,19 @@ Screener's growth and P/E figures are as of the export date. Types (lender, cycl
 # ============================================================
 # MAIN
 # ============================================================
+def notify_problem(reason):
+    """Say why there is no valuation table, instead of finishing silently."""
+    print("PROBLEM:", reason)
+    html = (f'<html><body style="font-family:Arial,sans-serif;"><h2>Valuation Tracker, {datetime.now().strftime("%d %b %Y")}</h2>'
+            f'<p style="color:#a00;">No valuation table this time. {reason}</p>'
+            '<p style="font-size:12px;">To fix: export your stocks from Screener.in as Excel (.xlsx) with the columns P/E, Ind PE, EV / EBITDA, CMP / BV, ROE 3Yr and '
+            'Profit Var 5Yrs %, save it as screener_export.xlsx in the repo root (next to watchlist.txt), commit it, and run the workflow again.</p></body></html>')
+    try:
+        m.send_email(f"Valuation Tracker, {datetime.now().strftime('%d %b %Y')} [NO DATA]", html)
+    except Exception as e:
+        print("Could not send the problem email:", e)
+
+
 def main():
     tickers = m.load_tickers(STOCKS_FILE)
     if MAX_TICKERS:
@@ -310,16 +323,22 @@ def main():
     sc, info = si.load_screener(require=("pe",))
     print("Screener.in export:", info)
     if sc.empty:
-        print("No Screener export, no valuation email.")
+        print("No usable Screener export:", info)
+        notify_problem(f"The Screener.in export could not be used: {info}")
         return
     peers, type_over = load_peers(PEERS_FILE)
     print(f"peers.csv: {len(peers)} peer groups, {len(type_over)} type overrides")
     known = [t for t in tickers if t in sc.index]
     print(f"{len(known)} of {len(tickers)} watchlist stocks found in the export")
+    if not known:
+        notify_problem(f"The export ({info}) was read, but none of your {len(tickers)} watchlist stocks were found in it. "
+                       "Matching uses the symbol inside each company's link, so the export must be the .xlsx file with the company links intact.")
+        return
     types = fetch_types(known)
     df, lender_ref = build_table(known, sc, types, peers, type_over)
     if df.empty:
         print("Nothing to value.")
+        notify_problem("The export was read, but no stock could be valued.")
         return
     has_hist = any(c.startswith("pe_hist") for c in sc.columns)
     print(df["tag"].value_counts().to_string())
