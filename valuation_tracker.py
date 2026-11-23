@@ -136,6 +136,7 @@ def valid_pe(x):
     return x is not None and not np.isnan(x) and 0 < x <= PE_MAX_VALID
 
 
+PE_LOOKUP = {}       # ticker -> P/E for every stock the pre-filter matched to the export (results/universe_pe_lookup.csv)
 FULL_BY_NAME = None   # the whole export keyed by company name, so peers outside the watchlist can be named in peers.csv
 
 
@@ -144,6 +145,8 @@ def peer_pe(p, sc):
     tk = p.upper() if p.upper().endswith(".NS") else p.upper() + ".NS"
     if tk in sc.index:
         return float(sc.loc[tk, "pe"])
+    if tk in PE_LOOKUP:
+        return PE_LOOKUP[tk]
     if FULL_BY_NAME is not None:
         k = "NAME:" + si.norm_name(p)
         if k in FULL_BY_NAME.index:
@@ -221,8 +224,10 @@ def value_stock(t, x, stype, peer_list, sc, lender_ref):
         ind = x.get("ind_pe", np.nan)
         if valid_pe(ind):
             gap = abs(r["pe"] / float(ind) - 1)
-            alone = IND_PE_COUNTS.get(round(float(ind), 2), 2) <= 1
-            if gap < 0.01 or (alone and gap < 0.03):
+            # How many rows of the export share this industry P/E: a small group means the industry figure is (nearly) this
+            # stock's own; in a big group a P/E within 1% of the industry figure is a coincidence, not a circular comparison.
+            n_same = IND_PE_COUNTS.get(round(float(ind), 2), 99)
+            if (n_same <= 2 and gap < 0.03) or (n_same <= 5 and gap < 0.01):
                 r["notes"].append("Screener's industry P/E is essentially this stock's own (its group is just or mostly this company): "
                                   "no real comparison, add a peers.csv entry")
                 return r
@@ -397,6 +402,10 @@ def main():
     if "ind_pe" in sc.columns:
         IND_PE_COUNTS.update(sc["ind_pe"].dropna().round(2).value_counts().to_dict())
     peers, type_over = load_peers(PEERS_FILE)
+    if os.path.exists("results/universe_pe_lookup.csv"):
+        _l = pd.read_csv("results/universe_pe_lookup.csv")
+        PE_LOOKUP.update(dict(zip(_l["ticker"], _l["pe"])))
+        print(f"P/E lookup for peers: {len(PE_LOOKUP)} tickers")
     print(f"peers.csv: {len(peers)} peer groups, {len(type_over)} type overrides")
     types = None
     lender_override = None

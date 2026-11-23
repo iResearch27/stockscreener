@@ -1,62 +1,62 @@
-# Peer groups for the Valuation tracker (draft, please review).,
-#   ticker : the stock (with or without .NS),,
-#   peers  : semicolon-separated. Each peer is a watchlist ticker (e.g. MGL) or a company name exactly as Screener spells it,,
-#            in your export (e.g. Tata Power Co.). Peers need a P/E between 0 and 100, and at least 3 are needed.,
+# Peer groups for the Valuation tracker (draft, please review).
+#   ticker : the stock (with or without .NS)
+#   peers  : semicolon-separated. Each peer is a watchlist ticker (e.g. MGL) or a company name exactly as Screener spells it
+#            in your export (e.g. Tata Power Co.). Peers need a P/E between 0 and 100, and at least 3 are needed.
 #   type   : optional. lender, insurer, cyclical or normal. Overrides what Yahoo says.
-#            Leave the peers column empty to change only the type.,,
-# Do not use commas inside a peer name. Lines starting with # are ignored.,,
+#            Leave the peers column empty to change only the type.
+# Do not use commas inside a peer name. Lines starting with # are ignored.
 ticker,peers,type
-# --- Gas distribution,,
+# --- Gas distribution
 ATGL,IGL;MGL;GUJENERGY;GAIL,normal
-# --- FMCG and consumer staples,,
+# --- FMCG and consumer staples
 MARICO,HINDUNILVR;DABUR;COLPAL;EMAMILTD;GODREJCP;JYOTHYLAB,normal
 COLPAL,HINDUNILVR;DABUR;MARICO;EMAMILTD;GODREJCP;JYOTHYLAB,normal
 ITC,HINDUNILVR;NESTLEIND;BRITANNIA;DABUR;GODREJCP;MARICO,normal
-VBL,BRITANNIA;NESTLEIND;BIKAJI;DABUR;Tata Consumer;HINDUNILVR,normal
+VBL,BRITANNIA;NESTLEIND;BIKAJI;DABUR;Tata Consumer,normal
 RADICO,UNITDSPR;United Breweries;Tilaknagar Inds.;Allied Blenders,normal
-# --- Jewellery,,
+# --- Jewellery
 TITAN,KALYANKJIL;SENCO;THANGAMAYL;PNGJL;SKYGOLD,normal
 KALYANKJIL,TITAN;SENCO;THANGAMAYL;PNGJL;SKYGOLD,normal
 PNGJL,TITAN;KALYANKJIL;SENCO;THANGAMAYL;SKYGOLD,normal
 SENCO,TITAN;KALYANKJIL;THANGAMAYL;PNGJL;SKYGOLD,normal
 THANGAMAYL,TITAN;KALYANKJIL;SENCO;PNGJL;SKYGOLD,normal
-# --- Autos,,
-M&M,MARUTI;EICHERMOT;ASHOKLEY;ESCORTS;Tata Motors Pveh;Tata Motors,normal
-ASHOKLEY,M&M;EICHERMOT;ESCORTS,normal
-# --- Pharma and healthcare,,
+# --- Autos
+M&M,MARUTI;BAJAJ-AUTO;EICHERMOT;HEROMOTOCO;ASHOKLEY;ESCORTS;TVS Motor Co.,normal
+ASHOKLEY,M&M;EICHERMOT;ESCORTS;MARUTI;TVS Motor Co.,normal
+# --- Pharma and healthcare
 TORNTPHARM,CIPLA;LUPIN;ZYDUSLIFE;MANKIND;AUROPHARMA;IPCALAB,normal
 BIOCON,CIPLA;LUPIN;ZYDUSLIFE;AUROPHARMA;Gland Pharma,normal
 ASTRAZEN,PFIZER;Abbott India;Sanofi India;Glaxosmi. Pharma,normal
 SYNGENE,Divi's Lab.;Laurus Labs;Gland Pharma;Aarti Pharma,normal
-# --- IT services,,
+# --- IT services
 COFORGE,Persistent Systems;Mphasis;KPIT Technologi.;LTTS;CYIENT;LTM;Hexaware Tech.,normal
 ZENSARTECH,Persistent Systems;Mphasis;KPIT Technologi.;LTTS;CYIENT;Hexaware Tech.;COFORGE,normal
-# --- Specialty chemicals,,
+# --- Specialty chemicals
 FLUOROCHEM,SRF;Navin Fluo.Intl.;VINATIORGA;FINEORG;GALAXYSURF;Aarti Industries;Deepak Nitrite,normal
-# --- Power producers,,
+# --- Power producers
 JSWENERGY,NTPC;NHPC;Tata Power Co.;Adani Power;Torrent Power;CESC,normal
-# --- Engineering, EPC and railways,
+# --- Engineering, EPC and railways
 LT,NCC;IRCON;ENGINERSIN;Kalpataru Proj.;POWERMECH,normal
 NBCC,ENGINERSIN;IRCON;RVNL;NCC;Kalpataru Proj.;POWERMECH,normal
 RVNL,IRCON;TITAGARH;TEXRAIL;Jupiter Wagons;I R C T C,normal
 TITAGARH,TEXRAIL;Jupiter Wagons;RVNL;IRCON;I R C T C,normal
-# --- Electrical equipment and machinery,,
+# --- Electrical equipment and machinery
 SIEMENS,A B B;GE Vernova T&D;VOLTAMP;ELECON;Thermax,normal
 VOLTAMP,A B B;GE Vernova T&D;SIEMENS;ELECON;Shilchar Tech.,normal
 VOLTAS,BLUESTARCO;HAVELLS;CROMPTON;Whirlpool India;SYMPHONY,normal
 ELGIEQUIP,AIAENG;ELECON;Thermax;Ingersoll-Rand;Kirloskar Oil;Grindwell Norton,normal
-# --- Real estate,,
+# --- Real estate
 SOBHA,DLF;GODREJPROP;OBEROIRLTY;LODHA;Brigade Enterpr.;Prestige Estates,normal
 DLF,GODREJPROP;OBEROIRLTY;LODHA;Brigade Enterpr.;Prestige Estates;SOBHA,normal
 GODREJPROP,DLF;OBEROIRLTY;LODHA;Brigade Enterpr.;Prestige Estates;SOBHA,normal
 # --- Hotels, footwear, building products
 EIHOTEL,Indian Hotels Co;Lemon Tree Hotel;Chalet Hotels;Juniper Hotels;SAMHI,normal
 RELAXO,BATAINDIA;METROBRAND;Campus Activewe.,normal
-CERA,KAJARIACER;Somany Ceramics;NITCO;Pokarna;Varmora Granito,normal
-# --- Type only (no peer list): tracked on EV/EBITDA and P/B, not tagged on P/E,
+CERA,KAJARIACER;Astral;Supreme Inds.;FINPIPE;HAVELLS,normal
+# --- Type only (no peer list): tracked on EV/EBITDA and P/B, not tagged on P/E
 GULFOILLUB,,cyclical
-TIINDIA,CRAFTSMAN;ENDURANCE;MOTHERSON,cyclical
-# --- Added after the last Valuation email,,
+TIINDIA,,cyclical
+# --- Added after the last Valuation email
 HAL,BEL;BDL;DATAPATTNS;Mazagon Dock;Garden Reach Sh.;Cochin Shipyard,normal
 BEL,HAL;BDL;DATAPATTNS;Mazagon Dock;Garden Reach Sh.;Cochin Shipyard,normal
 BDL,HAL;BEL;DATAPATTNS;Mazagon Dock;Garden Reach Sh.;Cochin Shipyard,normal
@@ -71,3 +71,8 @@ BLUESTARCO,VOLTAS;HAVELLS;CROMPTON;Whirlpool India;Orient Electric,normal
 KEI,Polycab India;FINCABLES;HAVELLS,normal
 TEXRAIL,TITAGARH;RVNL;IRCON;Jupiter Wagons;I R C T C,normal
 TECHNOE,A B B;GE Vernova T&D;SIEMENS;VOLTAMP;ELECON;Kalpataru Proj.,normal
+BSE,MCX;IEX;CDSL;CAMS;KFINTECH,normal
+PRUDENT,ANANDRATHI;360ONE;NUVAMA;GROWW;ANGELONE;MOTILALOFS;CHOICEIN,normal
+SOLARINDS,PREMEXPLN;GOCLCORP;KELTEC;BDL;PTCIL,normal
+AJANTPHARM,TORNTPHARM;IPCALAB;ALKEM;MANKIND;EMCURE;GLENMARK;ZYDUSLIFE;LUPIN,normal
+AJAXENGG,ACE;TIL;BEML;ESCORTS;GUJAPOLLO;INDOFARM,normal

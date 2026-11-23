@@ -40,12 +40,22 @@ TOP_N = 40                     # rows in the email
 
 
 # ---------------------------------------------------------------- names
+def find_names_file():
+    """symbol_names.csv, or any .csv/.xlsx in the repo root whose name has 'symbol' and 'name' in it (any capitalisation)."""
+    import glob
+    if os.path.exists(NAMES_FILE):
+        return NAMES_FILE
+    for p in sorted(glob.glob("*.csv") + glob.glob("*.xlsx")):
+        low = os.path.basename(p).lower()
+        if "symbol" in low and "name" in low:
+            return p
+    return None
+
+
 def load_symbol_names():
-    """NSE symbol -> official company name, from symbol_names.csv (or .xlsx). First column symbol, second column name."""
-    path = NAMES_FILE
-    if not os.path.exists(path) and os.path.exists(path.replace(".csv", ".xlsx")):
-        path = path.replace(".csv", ".xlsx")
-    if not os.path.exists(path):
+    """NSE symbol -> official company name. First column symbol, second column name."""
+    path = find_names_file()
+    if not path:
         return None
     d = pd.read_excel(path) if path.endswith(".xlsx") else pd.read_csv(path)
     d = d.iloc[:, :2]
@@ -151,7 +161,8 @@ def main():
     print("Screener export:", info)
     nse_names = load_symbol_names()
     if nse_names is None:
-        msg = f"{NAMES_FILE} not found: it maps NSE symbols to company names (two columns, SYMBOL.NS and NAME OF COMPANY)."
+        msg = (f"{NAMES_FILE} not found in the repo root (files there: {sorted(os.listdir('.'))[:40]}). It maps NSE symbols to company names "
+               "(two columns, SYMBOL.NS and NAME OF COMPANY). Upload it to the repo root, next to universe.txt.")
         print(msg)
         m.send_email(f"Universe Pre-filter, {datetime.now().strftime('%d %b %Y')} [NO DATA]", f"<html><body><p>{msg}</p></body></html>")
         return
@@ -162,6 +173,10 @@ def main():
     print(f"Matched {len(matched)} (exact {rep['exact']}, close {len(rep['fuzzy'])}); {len(rep['unmatched'])} unmatched; "
           f"{rep['price_rejected']} name_map overrides rejected on price; {len(no_name)} tickers not in {NAMES_FILE}")
 
+    # P/E of every stock matched to the export (not only candidates), so peers.csv can name any listed ticker as a peer
+    if "pe" in matched.columns:
+        os.makedirs("results", exist_ok=True)
+        matched[["pe"]].dropna().reset_index().rename(columns={matched.index.name or "index": "ticker"}).to_csv("results/universe_pe_lookup.csv", index=False)
     d = matched.join(elig[["price", "ret_1m", "ret_3m", "ret_6m", "off_high", "above_sma200", "turnover"]])
     d["lender"] = [is_lender_row(r) for _, r in d.iterrows()]
     for c in ("roce3", "roe3", "roa3", "de", "profit_5y", "sales_5y", "ni_yoy", "rev_yoy", "np_cr", "pe"):
