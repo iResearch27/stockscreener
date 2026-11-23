@@ -567,3 +567,14 @@ Look for lines starting `Traceback`, and for `Skipping` lines that name dropped 
 - Market-holiday skip, and an email only when something changed since the last run.
 - A separate intraday tool with its own period settings, rather than reusing the daily logic.
 - Backtesting the Early and Confirmed thresholds on historical data.
+
+## Combined shortlist (weekly email)
+
+`combined_shortlist.py` joins the latest saved results of the Quality, Earnings and Valuation trackers (`results/quality.csv`, `results/earnings.csv`, `results/valuation.csv`, committed by each workflow) and emails four tiers. A stock is listed only if Quality is A+/A and the earnings pass (Strong or Good; for stocks Yahoo cannot grade yearly, EPS growth of 15%+, marked `*`).
+
+- **1 Core:** valuation cheap or fair against peers and price above the SMA200.
+- **2 Waiting for trend:** cheap or fair, price below the SMA200 or trend unknown.
+- **3 Good but expensive:** rich or stretched against peers.
+- **4 Valuation n/a:** cyclicals, insurers and unvalued stocks.
+
+The email shows what joined a tier or dropped off since the last run and warns when any input is more than 10 days old. `results/shortlist.csv` holds all scored stocks with their tier. Evidence "Net profit only (Screener)" and "EPS only (Yahoo)" is weaker than "EBIT-graded".

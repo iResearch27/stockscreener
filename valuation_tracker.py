@@ -431,6 +431,9 @@ def main():
     has_hist = any(c.startswith("pe_hist") for c in sc.columns)
     print(df["tag"].value_counts().to_string())
     df.drop(columns=["notes"]).to_csv("valuation_scores.csv", index=False)
+    # Saved in the repo for the weekly combined shortlist (combined_shortlist.py)
+    os.makedirs("results", exist_ok=True)
+    df.drop(columns=["notes"]).assign(run_date=datetime.now().strftime("%Y-%m-%d")).to_csv("results/valuation.csv", index=False)
     html = build_email_html(df, len(tickers), info, lender_ref, has_hist)
     m.send_email(f"Valuation Tracker, {datetime.now().strftime('%d %b %Y')}", html)
 

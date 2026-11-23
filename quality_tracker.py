@@ -507,6 +507,9 @@ def main():
     df = build_table(rows)
     print(df[df["ok"]]["grade"].value_counts().to_string())
     df.to_csv("quality_scores.csv", index=False)
+    # Saved in the repo for the weekly combined shortlist (combined_shortlist.py)
+    os.makedirs("results", exist_ok=True)
+    df.assign(run_date=datetime.now().strftime("%Y-%m-%d")).to_csv("results/quality.csv", index=False)
 
     html = build_email_html(df, len(tickers))
     flag = " [CHECK DATA]" if len(df) < 0.9 * len(tickers) else ""

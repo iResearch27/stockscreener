@@ -661,6 +661,13 @@ def main():
     print(df["quality"].value_counts().to_string())
     print(f"Coverage: graded {len(df)}, sequential only {len(lim_names)}, no data {len(no_data)}, of {len(tickers)}")
 
+    # Saved in the repo for the weekly combined shortlist (combined_shortlist.py)
+    keep = ["ticker", "quality", "reported", "q_end", "result_date", "date_est", "rev_yoy", "ebit_yoy", "pbt_yoy", "ni_yoy",
+            "turned_profit", "eps_yoy", "bv_yoy", "reaction", "drift", "runup", "above_sma200", "flag", "src_note",
+            "note_profit", "data_note"]
+    os.makedirs("results", exist_ok=True)
+    full.reindex(columns=keep).assign(run_date=datetime.now().strftime("%Y-%m-%d")).to_csv("results/earnings.csv", index=False)
+
     warns = m.build_warnings(data, len(tickers)) if data else []
     if n_with < 0.7 * len(tickers):
         warns.append(f"Quarterly results loaded for only {n_with} of {len(tickers)} tickers. Yahoo coverage is thin for some Indian companies.")
