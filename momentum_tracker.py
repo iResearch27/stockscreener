@@ -562,7 +562,8 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
     """
 
 
-def send_email(subject, html_body):
+def send_email(subject, html_body, attachments=None):
+    """attachments: optional list of file paths sent with the email (a CSV with the full list cannot be clipped by Gmail)."""
     if os.environ.get("SKIP_EMAIL") == "1":
         print(f"SKIP_EMAIL is set: not sending '{subject}'.")
         return
@@ -570,11 +571,20 @@ def send_email(subject, html_body):
     password = os.environ["GMAIL_APP_PASSWORD"]
     recipient = os.environ.get("ALERT_RECIPIENT", sender)
 
-    msg = MIMEMultipart("alternative")
+    msg = MIMEMultipart("mixed")
     msg["Subject"] = subject
     msg["From"] = sender
     msg["To"] = recipient
-    msg.attach(MIMEText(html_body, "html"))
+    alt = MIMEMultipart("alternative")
+    alt.attach(MIMEText(html_body, "html"))
+    msg.attach(alt)
+    for path in attachments or []:
+        if os.path.exists(path):
+            from email.mime.application import MIMEApplication
+            with open(path, "rb") as fh:
+                part = MIMEApplication(fh.read(), Name=os.path.basename(path))
+            part["Content-Disposition"] = f'attachment; filename="{os.path.basename(path)}"'
+            msg.attach(part)
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(sender, password)

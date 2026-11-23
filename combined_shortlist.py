@@ -167,34 +167,40 @@ def tiers_html(j, universe=False, cap=None):
     return h
 
 
-def email_html(j, warns, changes, ju=None, uwarns=(), uchanges=()):
+HOW_TO_READ = """<h3>How to read this</h3>
+<p style="font-size:12px;">Quality, Earnings and Valuation are the latest saved results of the three trackers (see their own emails for the full tables and the definitions).
+<b>Net profit only (Screener)</b> and <b>EPS only (Yahoo)</b> are weaker evidence than <b>EBIT-graded</b>: one-offs and tax can distort net profit and EPS.
+A stock must be Quality A+ or A and have strong or good results to be listed at all; stocks that fail either are in the attached CSV with no tier.
+Valuation is a weak guide to the next 1 to 3 months, and a strong quarter does not mean a strong stock: read the company's own results before acting.</p>"""
+
+
+def email_html(j, warns, changes):
     h = f'<html><body style="font-family:Arial,sans-serif;font-size:13px;"><h2>Combined Shortlist, {datetime.now().strftime("%d %b %Y")}</h2>'
     n = {t: int((j["tier"] == t).sum()) for t in TIERS}
     h += (f'<p><b>{n[TIERS[0]]}</b> core, {n[TIERS[1]]} waiting for trend, {n[TIERS[2]]} good but expensive, {n[TIERS[3]]} valuation n/a, '
-          f'out of {len(j)} stocks scored by the Quality tracker. A shortlist to research, not a buy list.</p>')
+          f'out of {len(j)} stocks scored by the Quality tracker. A shortlist to research, not a buy list. '
+          'The full list is attached as a CSV. New ideas from the wider universe come in a separate email.</p>')
     for w in warns:
         h += f'<p style="color:#a00;">{w}</p>'
     if changes:
         h += "<p><b>Changes since the last run</b><br>" + "<br>".join(changes) + "</p>"
-    h += tiers_html(j)
-    if ju is not None:
-        nu = {t: int((ju["tier"] == t).sum()) for t in TIERS}
-        h += ('<hr><h2>New ideas: stocks not on your watchlist</h2>'
-              f'<p>From the weekly universe screen: <b>{nu[TIERS[0]]}</b> core, {nu[TIERS[1]]} waiting for trend, {nu[TIERS[2]]} good but expensive, '
-              f'{nu[TIERS[3]]} valuation n/a, out of {len(ju)} candidates that went through the full Quality, Earnings and Valuation trackers. '
-              'Valuation here uses Screener\'s industry P/E unless peers.csv has an entry, so it is a rougher yardstick. '
-              '"Extended" means up more than 100% in six months. Check the business before anything else: these are names you have not looked at.</p>')
-        for w in uwarns:
-            h += f'<p style="color:#a00;">{w}</p>'
-        if uchanges:
-            h += "<p><b>New ideas: changes since the last run</b><br>" + "<br>".join(uchanges) + "</p>"
-        h += tiers_html(ju, universe=True, cap=UNIVERSE_CAP)
-    h += """<h3>How to read this</h3>
-<p style="font-size:12px;">Quality, Earnings and Valuation are the latest saved results of the three trackers (see their own emails for the full tables and the definitions).
-<b>Net profit only (Screener)</b> and <b>EPS only (Yahoo)</b> are weaker evidence than <b>EBIT-graded</b>: one-offs and tax can distort net profit and EPS.
-A stock must be Quality A+ or A and have strong or good results to be listed at all; stocks that fail either are in results/shortlist.csv with no tier.
-Valuation is a weak guide to the next 1 to 3 months, and a strong quarter does not mean a strong stock: read the company's own results before acting.</p></body></html>"""
-    return h
+    return h + tiers_html(j) + HOW_TO_READ + "</body></html>"
+
+
+def new_ideas_html(ju, uwarns, uchanges):
+    nu = {t: int((ju["tier"] == t).sum()) for t in TIERS}
+    h = f'<html><body style="font-family:Arial,sans-serif;font-size:13px;"><h2>New Ideas, {datetime.now().strftime("%d %b %Y")}</h2>'
+    h += ('<p>Stocks <b>not on your watchlist</b>, from the weekly universe screen: '
+          f'<b>{nu[TIERS[0]]}</b> core, {nu[TIERS[1]]} waiting for trend, {nu[TIERS[2]]} good but expensive, '
+          f'{nu[TIERS[3]]} valuation n/a, out of {len(ju)} candidates that went through the full Quality, Earnings and Valuation trackers. '
+          f'The email shows {UNIVERSE_CAP} rows per tier; the full list is attached as a CSV. '
+          'Valuation here uses Screener\'s industry P/E unless peers.csv has an entry, so it is a rougher yardstick. '
+          '"Extended" means up more than 100% in six months. Check the business before anything else: these are names you have not looked at.</p>')
+    for w in uwarns:
+        h += f'<p style="color:#a00;">{w}</p>'
+    if uchanges:
+        h += "<p><b>Changes since the last run</b><br>" + "<br>".join(uchanges) + "</p>"
+    return h + tiers_html(ju, universe=True, cap=UNIVERSE_CAP) + HOW_TO_READ + "</body></html>"
 
 
 def tier_changes(path, j):
@@ -249,8 +255,12 @@ def main():
             uwarns = []
     for w in warns + uwarns:
         print("WARNING:", w)
-    html = email_html(j, warns, changes, ju, uwarns, uchanges)
-    m.send_email(f"Combined Shortlist, {datetime.now().strftime('%d %b %Y')}" + (" [CHECK DATA]" if warns or uwarns else ""), html)
+    stamp = datetime.now().strftime("%d %b %Y %H:%M")        # the time keeps Gmail from folding a same-day re-run into the earlier email
+    m.send_email(f"Combined Shortlist, {stamp}" + (" [CHECK DATA]" if warns else ""), email_html(j, warns, changes),
+                 attachments=[prev_path])
+    if ju is not None:
+        m.send_email(f"New Ideas, {stamp}" + (" [CHECK DATA]" if uwarns else ""), new_ideas_html(ju, uwarns, uchanges),
+                     attachments=[os.path.join(RES, "universe_shortlist.csv")])
 
 
 if __name__ == "__main__":
