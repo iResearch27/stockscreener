@@ -1,11 +1,58 @@
-# Optional overrides for the Valuation tracker. One line per stock that needs them.
-#   ticker : the stock (with or without .NS)
-#   peers  : semicolon-separated tickers whose median P/E is used instead of Screener's industry P/E
-#            (peers must be in your Screener export; at least 3 with a P/E between 0 and 100)
-#   type   : optional. lender, insurer, cyclical or normal. Overrides what Yahoo says
-#            (for example Asian Paints is "Specialty Chemicals" on Yahoo but is a consumer company: normal)
-# Lines starting with # are ignored. Delete the example rows and add your own.
+# Peer groups for the Valuation tracker (draft, please review).,
+#   ticker : the stock (with or without .NS),,
+#   peers  : semicolon-separated. Each peer is a watchlist ticker (e.g. MGL) or a company name exactly as Screener spells it,,
+#            in your export (e.g. Tata Power Co.). Peers need a P/E between 0 and 100, and at least 3 are needed.,
+#   type   : optional. lender, insurer, cyclical or normal. Overrides what Yahoo says.
+#            Leave the peers column empty to change only the type.,,
+# Do not use commas inside a peer name. Lines starting with # are ignored.,,
 ticker,peers,type
-# TITAN,TRENT;PAGEIND;BATAINDIA;KALYANKJIL;SENCO,normal
-# ADANIPORTS,,normal
-# ASIANPAINT,BERGEPAINT;KANSAINER;INDIGOPNTS,normal
+# --- Gas distribution,,
+ATGL,IGL;MGL;GUJENERGY;GAIL,normal
+# --- FMCG and consumer staples,,
+MARICO,HINDUNILVR;DABUR;COLPAL;EMAMILTD;GODREJCP;JYOTHYLAB,normal
+COLPAL,HINDUNILVR;DABUR;MARICO;EMAMILTD;GODREJCP;JYOTHYLAB,normal
+ITC,HINDUNILVR;NESTLEIND;BRITANNIA;DABUR;GODREJCP;MARICO,normal
+VBL,BRITANNIA;NESTLEIND;BIKAJI;DABUR;Tata Consumer;HINDUNILVR,normal
+RADICO,UNITDSPR;United Breweries;Tilaknagar Inds.;Allied Blenders,normal
+# --- Jewellery,,
+TITAN,KALYANKJIL;SENCO;THANGAMAYL;PNGJL;SKYGOLD,normal
+KALYANKJIL,TITAN;SENCO;THANGAMAYL;PNGJL;SKYGOLD,normal
+PNGJL,TITAN;KALYANKJIL;SENCO;THANGAMAYL;SKYGOLD,normal
+SENCO,TITAN;KALYANKJIL;THANGAMAYL;PNGJL;SKYGOLD,normal
+THANGAMAYL,TITAN;KALYANKJIL;SENCO;PNGJL;SKYGOLD,normal
+# --- Autos,,
+M&M,MARUTI;EICHERMOT;ASHOKLEY;ESCORTS;TMPV;TMCV,normal
+ASHOKLEY,M&M;EICHERMOT;ESCORTS,normal
+# --- Pharma and healthcare,,
+TORNTPHARM,CIPLA;LUPIN;ZYDUSLIFE;MANKIND;AUROPHARMA;IPCALAB,normal
+BIOCON,CIPLA;LUPIN;ZYDUSLIFE;AUROPHARMA;Gland Pharma,normal
+ASTRAZEN,PFIZER;Abbott India;Sanofi India;Glaxosmi. Pharma,normal
+SYNGENE,Divi's Lab.;Laurus Labs;Gland Pharma;Aarti Pharma,normal
+# --- IT services,,
+COFORGE,Persistent Systems;Mphasis;KPIT Technologi.;LTTS;CYIENT;LTM;Hexaware Tech.,normal
+ZENSARTECH,Persistent Systems;Mphasis;KPIT Technologi.;LTTS;CYIENT;Hexaware Tech.;COFORGE,normal
+# --- Specialty chemicals,,
+FLUOROCHEM,SRF;Navin Fluo.Intl.;VINATIORGA;FINEORG;GALAXYSURF;Aarti Industries;Deepak Nitrite,normal
+# --- Power producers,,
+JSWENERGY,NTPC;NHPC;Tata Power Co.;Adani Power;Torrent Power;CESC,normal
+# --- Engineering, EPC and railways,
+LT,NCC;IRCON;ENGINERSIN;Kalpataru Proj.;POWERMECH,normal
+NBCC,ENGINERSIN;IRCON;RVNL;NCC;Kalpataru Proj.;POWERMECH,normal
+RVNL,IRCON;TITAGARH;TEXRAIL;Jupiter Wagons;I R C T C,normal
+TITAGARH,TEXRAIL;Jupiter Wagons;RVNL;IRCON;I R C T C,normal
+# --- Electrical equipment and machinery,,
+SIEMENS,A B B;GE Vernova T&D;VOLTAMP;ELECON;Thermax,normal
+VOLTAMP,A B B;GE Vernova T&D;SIEMENS;ELECON;Shilchar Tech.,normal
+VOLTAS,BLUESTARCO;HAVELLS;CROMPTON;Whirlpool India;SYMPHONY,normal
+ELGIEQUIP,AIAENG;ELECON;Thermax;Ingersoll-Rand;Kirloskar Oil;Grindwell Norton,normal
+# --- Real estate,,
+SOBHA,DLF;GODREJPROP;OBEROIRLTY;LODHA;Brigade Enterpr.;Prestige Estates,normal
+DLF,GODREJPROP;OBEROIRLTY;LODHA;Brigade Enterpr.;Prestige Estates;SOBHA,normal
+GODREJPROP,DLF;OBEROIRLTY;LODHA;Brigade Enterpr.;Prestige Estates;SOBHA,normal
+# --- Hotels, footwear, building products
+EIHOTEL,Indian Hotels Co;Lemon Tree Hotel;Chalet Hotels;Juniper Hotels;SAMHI,normal
+RELAXO,BATAINDIA;METROBRAND;Campus Activewe.,normal
+CERA,KAJARIACER,normal
+# --- Type only (no peer list): tracked on EV/EBITDA and P/B, not tagged on P/E,
+GULFOILLUB,,cyclical
+TIINDIA,CRAFTSMAN;ENDURANCE;MOTHERSON,cyclical

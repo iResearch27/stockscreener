@@ -124,8 +124,7 @@ def load_peers(path):
             continue
         if not t.endswith(".NS"):
             t += ".NS"
-        plist = [p.strip().upper() + ("" if p.strip().upper().endswith(".NS") else ".NS")
-                 for p in r.get("peers", "").split(";") if p.strip()]
+        plist = [p.strip() for p in r.get("peers", "").split(";") if p.strip()]   # tickers, or company names as Screener spells them
         if plist:
             peers[t] = plist
         if r.get("type", "").strip():
@@ -137,9 +136,32 @@ def valid_pe(x):
     return x is not None and not np.isnan(x) and 0 < x <= PE_MAX_VALID
 
 
+FULL_BY_NAME = None   # the whole export keyed by company name, so peers outside the watchlist can be named in peers.csv
+
+
+def peer_pe(p, sc):
+    """P/E of a peer given as a ticker (ICICIBANK or ICICIBANK.NS) or a Screener company name; None if not found."""
+    tk = p.upper() if p.upper().endswith(".NS") else p.upper() + ".NS"
+    if tk in sc.index:
+        return float(sc.loc[tk, "pe"])
+    if FULL_BY_NAME is not None:
+        k = "NAME:" + si.norm_name(p)
+        if k in FULL_BY_NAME.index:
+            return float(FULL_BY_NAME.loc[k, "pe"])
+    return None
+
+
 def peer_median_pe(peer_list, sc):
-    vals = [float(sc.loc[p, "pe"]) for p in peer_list if p in sc.index and valid_pe(sc.loc[p, "pe"])]
-    return (float(np.median(vals)), len(vals)) if len(vals) >= MIN_PEERS else (np.nan, len(vals))
+    """Returns (median P/E or nan, valid count, peers not found in the export)."""
+    vals, missing = [], []
+    for p in peer_list:
+        v = peer_pe(p, sc)
+        if v is None:
+            missing.append(p)
+        elif valid_pe(v):
+            vals.append(v)
+    med = float(np.median(vals)) if len(vals) >= MIN_PEERS else np.nan
+    return med, len(vals), missing
 
 
 # ============================================================
@@ -186,8 +208,10 @@ def value_stock(t, x, stype, peer_list, sc, lender_ref):
         r["notes"].append("P/E missing, negative or above 100")
         return r
     if peer_list:
-        r["peer_pe"], n = peer_median_pe(peer_list, sc)
+        r["peer_pe"], n, missing = peer_median_pe(peer_list, sc)
         r["peer_src"] = f"your peers ({n} valid)"
+        if missing:
+            r["notes"].append("Peers not found in the export: " + ", ".join(missing))
         if np.isnan(r["peer_pe"]):
             r["notes"].append("Your peer list has too few valid peers in the export")
     if np.isnan(r["peer_pe"]):
@@ -360,6 +384,8 @@ def main():
     print(f"peers.csv: {len(peers)} peer groups, {len(type_over)} type overrides")
     types = None
     if sc.attrs.get("by_name"):
+        global FULL_BY_NAME
+        FULL_BY_NAME = sc
         # The export has no links, so match company names to tickers using Yahoo's names.
         names = {}
         types = fetch_types(tickers, names)
