@@ -285,27 +285,35 @@ writes `quality_scores.csv` on the runner.
 
 | Pillar | Metric | Points | 0 points at | Full points at |
 |---|---|---|---|---|
-| Profitability (30) | ROCE (EBIT / (total assets - current liabilities)), 3-year average | 15 | 8% | 20% |
-| | ROE (net profit / equity), 3-year average | 15 | 8% | 18% |
-| Growth (30) | Sales CAGR | 10 | 0% | 15% |
-| | Profit CAGR | 10 | 0% | 15% |
+| Profitability (30) | ROCE (EBIT / (total assets - current liabilities)), 3-year average | 15 | 10% | 25% |
+| | ROE (net profit / equity), 3-year average | 15 | 10% | 22% |
+| Growth (30) | Sales CAGR | 10 | 0% | 20% |
+| | Profit CAGR (credit capped at 30%) | 10 | 0% | 20% |
 | | Share of years with profit growth | 10 | 0 | all |
 | Balance sheet (20) | Debt / equity (lower is better) | 10 | 1.5 | 0.3 |
-| | Interest cover (EBIT / interest, capped at 20) | 10 | 2x | 8x |
-| Cash quality (20) | Operating cash flow / profit (profit years only) | 10 | 0.5 | 1.0 |
+| | Interest cover (EBIT / interest, capped at 20) | 10 | 2x | 10x |
+| Cash quality (20) | Operating cash flow / profit (profit years only) | 10 | 0.5 | 1.1 |
 | | Free cash flow positive in the latest year | 5 | no | yes |
 | | Operating margin change over the period | 5 | -3 points | +1 point |
 
 **Banks and other lenders (100 points):** debt, ROCE and cash flow do not mean the same thing for a lender, so they are scored on
-ROE 40 (8% to 16%), ROA 20 (0.5% to 1.5%), profit CAGR 15, sales CAGR 10 and years of profit growth 15. Insurers are scored as
-operating companies.
+ROE 30 (8% to 18%), ROA 20 (0.5% to 2%), profit CAGR 15 (0% to 20%), sales CAGR 10 (0% to 15%), years of profit growth 10, and
+capital strength 15 (equity / total assets, 6% to 12%). Loan quality (bad loans) is not available from Yahoo, so it is not scored.
+Insurers are scored as operating companies.
+
+**Finance arms:** companies whose consolidated accounts include a lending arm (M&M, Ashok Leyland, Titan, L&T) have debt/equity, interest cover and
+cash-flow measures left out of the score, because the loan book distorts them. The list is the constant `FINANCE_ARM_TICKERS` at the top of
+`quality_tracker.py`.
+
+**Low-base growth:** a profit CAGR above 60% is noted ("Low-base growth") and earns no credit above 30%.
 
 **Scoring rules:** points scale linearly between the two ends and are clipped. If some metrics are missing, the score is rescaled over
 the ones available. A stock with under 60% of the score computable is listed as "not scored" instead of being graded.
-Grades: A 70+, B 55 to 70, C 40 to 55, D below 40.
+Grades: **A+ 85+ with no red flags**, A 70 to 85, B 55 to 70, C 40 to 55, D below 40. (The thresholds were tightened on Nov 23, 2026, because the first
+run graded 56% of the watchlist A. On that run's data the new rules put roughly 6% at A+ and a third at A.)
 
 **Red flags:** ROE below 8%; ROCE below 10%; debt/equity above 1.5; interest cover below 2.5; operating cash flow under 60% of
-profit; negative free cash flow; sales shrinking over the period; profit fell in the latest year.
+profit; negative free cash flow; sales shrinking over the period; profit fell in the latest year. Debt and cash flags are skipped for finance-arm companies.
 
 **Limits:** Yahoo's coverage of Indian companies is patchy and sometimes wrong, especially for small caps. Promoter holding,
 pledging and one-off items are not captured. Three to four years is a short history. All weights and cut-offs are starting values,
