@@ -46,6 +46,11 @@ LOW_BASE_CAGR = 60.0      # profit CAGR above this is noted as "low base"
 # Add or remove tickers here as you learn more.
 FINANCE_ARM_TICKERS = {"M&M.NS", "ASHOKLEY.NS", "TITAN.NS", "LT.NS"}
 FINANCE_ARM_SKIP = {"de", "int_cover", "ocf_ni", "fcf_pos"}
+LENDER_APLUS = 90         # lenders skip the debt and cash tests and bad-loan data is missing, so A+ needs a higher score
+BANK_ROA_FULL = 2.0       # ROA that earns full marks: banks
+NBFC_ROA_FULL = 3.0       # ...and non-bank lenders, which normally earn a higher ROA
+# Tickers whose recent ratios are distorted by a merger (equity and sales jumped). Shown with a note. Edit as needed.
+MERGER_DISTORTED = {"HDFCBANK.NS"}
 
 # Red-flag thresholds
 FLAG_ROCE_MIN = 10.0
@@ -68,8 +73,8 @@ NONFIN_RULES = [
     ("margin_trend", 5, -3.0, 1.0),
 ]
 FIN_RULES = [
-    ("roe", 30, 8.0, 18.0),
-    ("roa", 20, 0.5, 2.0),
+    ("roe", 30, 8.0, 20.0),
+    ("roa", 20, 0.5, 2.0),           # full-marks ROA is set per stock in score_stock (bank vs NBFC)
     ("ni_cagr", 15, 0.0, 20.0),
     ("rev_cagr", 10, 0.0, 15.0),
     ("consistency", 10, 0.0, 1.0),
@@ -250,6 +255,8 @@ def score_stock(m):
         v = m.get(name)
         if name == "ni_cagr" and v is not None and not np.isnan(v):
             v = min(v, NI_CAGR_CAP)
+        if name == "roa":
+            hi = BANK_ROA_FULL if "bank" in str(m.get("industry", "")).lower() else NBFC_ROA_FULL
         p = lin(v, lo, hi, pts)
         if p is not None:
             earned += p
@@ -263,10 +270,16 @@ def is_finance_arm(m):
     return m.get("ticker") in FINANCE_ARM_TICKERS
 
 
-def grade(score, n_flags=0):
+def is_insurer(m):
+    return "insurance" in str(m.get("industry", "")).lower()
+
+
+def grade(score, n_flags=0, m=None):
     if np.isnan(score):
         return "-"
-    if score >= GRADE_APLUS and n_flags == 0:
+    m = m or {}
+    aplus_bar = LENDER_APLUS if m.get("is_fin") else GRADE_APLUS
+    if score >= aplus_bar and n_flags == 0 and not is_insurer(m):
         return "A+"
     return "A" if score >= GRADE_A else "B" if score >= GRADE_B else "C" if score >= GRADE_C else "D"
 
@@ -308,6 +321,10 @@ def notes_for(m):
         n.append("Low-base growth (score capped)")
     if is_finance_arm(m):
         n.append("Debt and cash flow left out: accounts include a finance arm")
+    if is_insurer(m):
+        n.append("Insurer: few metrics available, not eligible for A+")
+    if m.get("ticker") in MERGER_DISTORTED:
+        n.append("Merger-distorted ROE and sales growth: read with caution")
     return n
 
 
@@ -347,7 +364,7 @@ def build_table(rows):
     df["score"], df["coverage"] = sc[0], sc[1]
     df["flags"] = [", ".join(red_flags(r)) for r in rows]
     df["notes"] = ["; ".join(notes_for(r)) for r in rows]
-    df["grade"] = [grade(sc_, 1 if fl else 0) for sc_, fl in zip(df["score"], df["flags"])]
+    df["grade"] = [grade(sc_, 1 if fl else 0, r) for sc_, fl, r in zip(df["score"], df["flags"], rows)]
     df["ok"] = (df["coverage"] >= MIN_COVERAGE) & df["score"].notna()
     return df
 
@@ -400,6 +417,18 @@ def build_email_html(df, n_requested):
 <p style="font-size:13px;">{len(ok)} stocks scored: <b>{len(ap)} grade A+</b>, <b>{len(a)} grade A</b>, <b>{len(b)} grade B</b>, {c} grade C, {d} grade D.
 {len(bad)} could not be scored (not enough data). This is a quality filter, not a buy signal: use it to choose which stocks
 deserve your time, then use the Momentum and Earnings trackers for timing.</p>{warn_html}
+<p style="font-size:12px;margin-bottom:2px;"><b>Time period behind each column</b> (all from Yahoo's annual statements, which usually give the last 4 financial years;
+the latest year is the most recent full year reported, not the trailing 12 months):</p>
+<table style="border-collapse:collapse;font-size:12px;">
+<tr><td style="padding:2px 8px;"><b>ROCE, ROE, ROA</b></td><td style="padding:2px 8px;">Average of the last 3 years (year-end balance sheet figures)</td></tr>
+<tr><td style="padding:2px 8px;"><b>Sales CAGR, Profit CAGR</b></td><td style="padding:2px 8px;">Compound growth from the oldest to the latest year available (normally 3 years of growth from 4 years of data, sometimes more)</td></tr>
+<tr><td style="padding:2px 8px;"><b>Years of profit growth</b> (in the score)</td><td style="padding:2px 8px;">Share of year-on-year steps, across all years available, in which profit rose</td></tr>
+<tr><td style="padding:2px 8px;"><b>Debt/Equity, Equity/assets, Interest cover</b></td><td style="padding:2px 8px;">Latest year only (a snapshot, not an average)</td></tr>
+<tr><td style="padding:2px 8px;"><b>Cash/Profit</b></td><td style="padding:2px 8px;">Average of the last 3 profit-making years</td></tr>
+<tr><td style="padding:2px 8px;"><b>Free cash flow positive</b> (in the score)</td><td style="padding:2px 8px;">Latest year only</td></tr>
+<tr><td style="padding:2px 8px;"><b>Operating margin trend</b> (in the score)</td><td style="padding:2px 8px;">Change from the oldest to the latest year available (needs 3+ years)</td></tr>
+<tr><td style="padding:2px 8px;"><b>Red flag "Profit fell last year"</b></td><td style="padding:2px 8px;">Latest year versus the year before</td></tr>
+</table>
 <h3>Grade A+: the strongest, with no red flags ({len(ap)})</h3>{table_html(ap) if len(ap) else '<p>None.</p>'}
 <h3>Grade A: strong businesses ({len(a)})</h3>{table_html(a) if len(a) else '<p>None.</p>'}
 <h3>Grade B: good, with some gaps ({len(b)})</h3>{table_html(b) if len(b) else '<p>None.</p>'}
@@ -419,10 +448,10 @@ operating margin trend 5)</td></tr>
 ROE 30 + ROA 20 + profit CAGR 15 + sales CAGR 10 + years of profit growth 10 + capital strength (equity / total assets) 15.
 Loan quality (bad loans) is not available from this data source, so a lender's score does not reflect it.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Full marks at</b></td><td style="padding:3px 8px;">
-ROCE 25%+, ROE 22%+ (18%+ for lenders, ROA 2%+), sales and profit growth 20%+ a year, debt/equity 0.3 or less, interest cover 10x+,
+ROCE 25%+, ROE 22%+ (20%+ for lenders; ROA 2%+ for banks, 3%+ for other lenders), sales and profit growth 20%+ a year, debt/equity 0.3 or less, interest cover 10x+,
 cash flow 1.1x profit or better, equity/assets 12%+ for lenders. Zero points at the low end of each range (for example ROCE 10%).</td></tr>
-<tr><td style="padding:3px 8px;"><b>Grades</b></td><td style="padding:3px 8px;">A+: 85+ with no red flags, A: 70 to 85, B: 55 to 70, C: 40 to 55, D: below 40.
-Averages use the last 3 years. If some metrics are missing, the score is rescaled over those available, and stocks with under
+<tr><td style="padding:3px 8px;"><b>Grades</b></td><td style="padding:3px 8px;">A+: 85+ with no red flags (90+ for lenders; insurers are not eligible), A: 70 to 85, B: 55 to 70, C: 40 to 55, D: below 40.
+Averages use the last 3 years (see the period table at the top). If some metrics are missing, the score is rescaled over those available, and stocks with under
 60% of the score available are not graded.</td></tr>
 <tr><td style="padding:3px 8px;"><b>Red flags</b></td><td style="padding:3px 8px;">
 ROE below 8%; ROCE below 10%; debt/equity above 1.5; interest cover below 2.5; cash flow below 60% of profit;

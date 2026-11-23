@@ -297,7 +297,7 @@ writes `quality_scores.csv` on the runner.
 | | Operating margin change over the period | 5 | -3 points | +1 point |
 
 **Banks and other lenders (100 points):** debt, ROCE and cash flow do not mean the same thing for a lender, so they are scored on
-ROE 30 (8% to 18%), ROA 20 (0.5% to 2%), profit CAGR 15 (0% to 20%), sales CAGR 10 (0% to 15%), years of profit growth 10, and
+ROE 30 (8% to 20%), ROA 20 (0.5% to 2% for banks, 0.5% to 3% for other lenders), profit CAGR 15 (0% to 20%), sales CAGR 10 (0% to 15%), years of profit growth 10, and
 capital strength 15 (equity / total assets, 6% to 12%). Loan quality (bad loans) is not available from Yahoo, so it is not scored.
 Insurers are scored as operating companies.
 
@@ -305,11 +305,19 @@ Insurers are scored as operating companies.
 cash-flow measures left out of the score, because the loan book distorts them. The list is the constant `FINANCE_ARM_TICKERS` at the top of
 `quality_tracker.py`.
 
+**Lender, insurer and merger adjustments (Nov 23):** lenders skip the debt and cash tests and bad-loan data is missing, so they need 90+ for A+ and a higher
+ROE bar (20%). Insurers are scored on the few metrics Yahoo provides and cannot be A+. Tickers in `MERGER_DISTORTED` (HDFCBANK) carry a caution note.
+
 **Low-base growth:** a profit CAGR above 60% is noted ("Low-base growth") and earns no credit above 30%.
+
+**Time periods** (annual statements from Yahoo, usually 4 financial years; the latest year is the last full year reported, not trailing twelve months):
+ROCE, ROE, ROA and Cash/Profit are 3-year averages (Cash/Profit over profit-making years only); sales and profit CAGR run from the oldest to the latest year available;
+years of profit growth and operating margin trend use all years available; debt/equity, equity/assets, interest cover, free cash flow and the "profit fell last year" flag use the latest year only.
+The same table appears at the top of the email.
 
 **Scoring rules:** points scale linearly between the two ends and are clipped. If some metrics are missing, the score is rescaled over
 the ones available. A stock with under 60% of the score computable is listed as "not scored" instead of being graded.
-Grades: **A+ 85+ with no red flags**, A 70 to 85, B 55 to 70, C 40 to 55, D below 40. (The thresholds were tightened on Nov 23, 2026, because the first
+Grades: **A+ 85+ with no red flags (90+ for lenders, and insurers are not eligible)**, A 70 to 85, B 55 to 70, C 40 to 55, D below 40. (The thresholds were tightened on Nov 23, 2026, because the first
 run graded 56% of the watchlist A. On that run's data the new rules put roughly 6% at A+ and a third at A.)
 
 **Red flags:** ROE below 8%; ROCE below 10%; debt/equity above 1.5; interest cover below 2.5; operating cash flow under 60% of
