@@ -2,8 +2,8 @@ name: Combined Shortlist
 
 on:
   schedule:
-    # Monday 9:00 AM IST (03:30 UTC): after the Saturday Quality run and the Monday Valuation run (8:00 AM IST).
-    - cron: "30 3 * * 1"
+    # Monday 10:00 AM IST (04:30 UTC): after the Saturday Quality run, the Monday Valuation run (8:00 AM IST) and the universe workflows (start 6:30 AM IST).
+    - cron: "30 4 * * 1"
   workflow_dispatch:
 
 permissions:
