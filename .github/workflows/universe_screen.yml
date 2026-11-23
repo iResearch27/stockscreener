@@ -1,0 +1,43 @@
+name: Universe Screen
+
+on:
+  schedule:
+    # Monday 6:30 AM IST (01:00 UTC), before the Valuation run. Refresh screener_export.xlsx before this if you want fresh fundamentals.
+    - cron: "0 1 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run universe screen
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_RECIPIENT: ${{ secrets.ALERT_RECIPIENT }}
+        run: python universe_screen.py
+
+      - name: Save results to the repo
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add results/ || true
+          git diff --cached --quiet || git commit -m "Update universe screen [skip ci]"
+          for i in 1 2 3 4; do
+            git pull --rebase origin ${{ github.ref_name }} && git push && break
+            sleep $((i * 5))
+          done
