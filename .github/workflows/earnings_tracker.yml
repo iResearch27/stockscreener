@@ -9,10 +9,6 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: results-commit
-  cancel-in-progress: false
-
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -41,5 +37,7 @@ jobs:
           git config user.email "github-actions@users.noreply.github.com"
           git add results/ || true
           git diff --cached --quiet || git commit -m "Update tracker results [skip ci]"
-          git pull --rebase origin ${{ github.ref_name }} || true
-          git push || true
+          for i in 1 2 3 4; do
+            git pull --rebase origin ${{ github.ref_name }} && git push && break
+            sleep $((i * 5))
+          done
