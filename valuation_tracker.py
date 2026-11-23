@@ -65,17 +65,31 @@ CONGLOMERATE_HINT = {"RELIANCE.NS", "LT.NS", "M&M.NS", "ITC.NS", "ADANIENT.NS", 
 def fetch_type(t):
     try:
         info = yf.Ticker(t).info or {}
-        return t, (info.get("sector") or ""), (info.get("industry") or "")
+        return t, (info.get("sector") or ""), (info.get("industry") or ""), [info.get("longName"), info.get("shortName")]
     except Exception:
-        return t, "", ""
+        return t, "", "", []
 
 
-def fetch_types(tickers):
+def fetch_types(tickers, names=None):
+    """{ticker: (sector, industry)}. If a dict is passed as `names`, it is filled with {ticker: [Yahoo names]}."""
     out = {}
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
-        for t, sec, ind in ex.map(fetch_type, tickers):
+        for t, sec, ind, nm in ex.map(fetch_type, tickers):
             out[t] = (sec, ind)
+            if names is not None:
+                names[t] = nm
     return out
+
+
+def load_name_map(path="name_map.csv"):
+    """Optional name_map.csv (columns: ticker, screener_name) to fix names that do not match automatically."""
+    if not os.path.exists(path):
+        return {}
+    df = pd.read_csv(path, comment="#", dtype=str).fillna("")
+    df.columns = [c.strip().lower() for c in df.columns]
+    if "ticker" not in df or "screener_name" not in df:
+        return {}
+    return {r["ticker"].strip().upper(): r["screener_name"].strip() for _, r in df.iterrows() if r["ticker"].strip() and r["screener_name"].strip()}
 
 
 def classify_type(sector, industry, override=None):
@@ -320,7 +334,7 @@ def main():
     if MAX_TICKERS:
         tickers = tickers[:MAX_TICKERS]
     print(f"Loaded {len(tickers)} tickers from {STOCKS_FILE}")
-    sc, info = si.load_screener(require=("pe",))
+    sc, info = si.load_screener(require=("pe",), allow_names=True)
     print("Screener.in export:", info)
     if sc.empty:
         print("No usable Screener export:", info)
@@ -328,13 +342,30 @@ def main():
         return
     peers, type_over = load_peers(PEERS_FILE)
     print(f"peers.csv: {len(peers)} peer groups, {len(type_over)} type overrides")
+    types = None
+    if sc.attrs.get("by_name"):
+        # The export has no links, so match company names to tickers using Yahoo's names.
+        names = {}
+        types = fetch_types(tickers, names)
+        sc, rep_ = si.match_by_name(sc, names, load_name_map())
+        print(f"Matched by name: {rep_['exact']} exact, {len(rep_['fuzzy'])} close, {len(rep_['unmatched'])} not found")
+        for t, nm, sc_ in rep_["fuzzy"]:
+            print(f"  close match: {t} -> '{nm}' ({sc_})")
+        print("  not found:", ", ".join(rep_["unmatched"]))
+        info += (f"; matched by company name: {rep_['exact']} exact, {len(rep_['fuzzy'])} close"
+                 + (" (" + "; ".join(f"{t.replace('.NS','')}={nm}" for t, nm, _ in rep_["fuzzy"][:15]) + ")" if rep_["fuzzy"] else "")
+                 + f", {len(rep_['unmatched'])} not found"
+                 + (" (" + ", ".join(t.replace('.NS', '') for t in rep_["unmatched"][:25]) + ")" if rep_["unmatched"] else ""))
+        if sc.empty:
+            notify_problem(f"The export has no company links, and no watchlist stock could be matched by name. {info}")
+            return
     known = [t for t in tickers if t in sc.index]
     print(f"{len(known)} of {len(tickers)} watchlist stocks found in the export")
     if not known:
         notify_problem(f"The export ({info}) was read, but none of your {len(tickers)} watchlist stocks were found in it. "
                        "Matching uses the symbol inside each company's link, so the export must be the .xlsx file with the company links intact.")
         return
-    types = fetch_types(known)
+    types = {t: types[t] for t in known} if types else fetch_types(known)
     df, lender_ref = build_table(known, sc, types, peers, type_over)
     if df.empty:
         print("Nothing to value.")

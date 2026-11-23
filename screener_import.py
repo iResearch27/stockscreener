@@ -72,7 +72,109 @@ def _find_hist_pe(headers):
     return found
 
 
-def load_screener(path=None, require=("ni_yoy", "rev_yoy")):
+_SUFFIX = {"limited", "ltd", "the"}
+
+
+def norm_name(x):
+    """'Reliance Industries Ltd.' and 'RELIANCE INDUSTRIES LIMITED' -> 'relianceindustries'."""
+    x = str(x or "").lower().replace("&", " and ")
+    words = [w for w in re.sub(r"[^a-z0-9 ]+", " ", x).split() if w not in _SUFFIX]
+    return "".join(words)
+
+
+def _tokens(x):
+    x = str(x or "").lower().replace("&", " and ")
+    return [w for w in re.sub(r"[^a-z0-9]+", " ", x).split() if w not in _SUFFIX]
+
+
+def _abbrev(a, full):
+    """True if a is full, or a shortened form of it ('Inds' of 'Industries', 'Hind' of 'Hindustan')."""
+    if a == full:
+        return True
+    if len(a) > len(full) or a[0] != full[0]:
+        return False
+    if len(a) < 3:
+        return full.startswith(a)
+    if a[:3] != full[:3]:                                          # shortened names keep the opening letters
+        return False
+    it = iter(full[1:])
+    return all(ch in it for ch in a[1:])
+
+
+def _abbrev_score(sc_name, yahoo_name):
+    """Screener shortens names ('Hind. Unilever', 'Sun Pharma.Inds.', 'M & M'). Returns a rank (higher is better) or None."""
+    a, y = _tokens(sc_name), _tokens(yahoo_name)
+    if not a or not y:
+        return None
+    if len(a) == 1 and 2 <= len(a[0]) <= 5 and len(y) > 1 and a[0] == "".join(w[0] for w in y if w != "and"):
+        return 0.5                                                  # initials, e.g. TCS
+    j, skips = 0, 0
+    for tok in a:
+        while j < len(y) and not _abbrev(tok, y[j]):
+            j += 1
+            skips += 1
+        if j >= len(y):
+            return None
+        j += 1
+    skips += len(y) - j
+    return None if skips > 1 else 1.0 - 0.2 * skips
+
+
+def match_by_name(sc, ticker_names, overrides=None, cutoff=0.88):
+    """For exports without links: attach NSE tickers by company name.
+    ticker_names: {ticker: [names, e.g. Yahoo long and short name]}. overrides: {ticker: Screener name}.
+    Returns (DataFrame indexed by ticker, report dict)."""
+    import difflib
+    keys = list(sc.index)
+    by_key = {k: k[5:] for k in keys}                       # strip 'NAME:'
+    rows, fuzzy, unmatched = {}, [], []
+    overrides = {t: norm_name(n) for t, n in (overrides or {}).items()}
+    exact = 0
+    for t, names in ticker_names.items():
+        cands = [norm_name(n) for n in names if n]
+        hit = None
+        if t in overrides and "NAME:" + overrides[t] in sc.index:
+            hit = "NAME:" + overrides[t]
+            exact += 1
+        else:
+            for c in cands:
+                if c and "NAME:" + c in sc.index:
+                    hit = "NAME:" + c
+                    exact += 1
+                    break
+        if hit is None and cands:
+            best, score = None, 0.0
+            for c in cands:
+                for k, nm in by_key.items():
+                    r = difflib.SequenceMatcher(None, c, nm).ratio()
+                    if r > score:
+                        best, score = k, r
+            if best is not None and score >= cutoff:
+                hit = best
+                fuzzy.append((t, sc.loc[best, "name"], round(score, 2)))
+        if hit is None:
+            ranked = []
+            for k, nm in by_key.items():
+                for yn in names:
+                    r = _abbrev_score(sc.loc[k, "name"], yn)
+                    if r is not None:
+                        ranked.append((r, k))
+                        break
+            if ranked:
+                top = max(r for r, _ in ranked)
+                best = [k for r, k in ranked if r == top]
+                if len(best) == 1:
+                    hit = best[0]
+                    fuzzy.append((t, sc.loc[hit, "name"], round(top, 2)))
+        if hit is None:
+            unmatched.append(t)
+        else:
+            rows[t] = sc.loc[hit]
+    out = pd.DataFrame.from_dict(rows, orient="index") if rows else pd.DataFrame()
+    return out, {"exact": exact, "fuzzy": fuzzy, "unmatched": unmatched}
+
+
+def load_screener(path=None, require=("ni_yoy", "rev_yoy"), allow_names=False):
     """Returns (DataFrame indexed by NSE ticker such as 'ICICIBANK.NS', info string) or (empty DataFrame, reason)."""
     path = path or SCREENER_FILE
     if not os.path.exists(path):
@@ -96,21 +198,49 @@ def load_screener(path=None, require=("ni_yoy", "rev_yoy")):
             col["result_date"] = headers.index(dt_h)
         name_i = next((i for i, h in enumerate(headers) if _norm(h) == "company"), 1)
         out = {}
+        out_names = {}
+        n_rows = n_links = 0
+        samples = []
         for row in ws.iter_rows(min_row=2):
             cell = row[name_i]
             link = cell.hyperlink.target if cell.hyperlink else None
+            shown = cell.value
+            if not link and isinstance(shown, str) and shown.startswith("="):
+                # Some exports/spreadsheet apps keep the link as =HYPERLINK("url","name")
+                fm = re.match(r'=\s*HYPERLINK\(\s*"([^"]+)"\s*(?:[,;]\s*"([^"]*)")?', shown, re.I)
+                if fm:
+                    link, shown = fm.group(1), (fm.group(2) or shown)
+            n_rows += 1
+            if link:
+                n_links += 1
+            elif len(samples) < 3:
+                samples.append(repr(cell.value)[:40])
             m = re.search(r"/company/([^/]+)/", link or "")
-            if not m or m.group(1).isdigit():
+            if allow_names and not link and shown:
+                key, store = "NAME:" + norm_name(shown), out_names
+            elif not m or m.group(1).isdigit():
                 continue
-            rec = {"name": cell.value}
+            else:
+                key, store = m.group(1).upper() + ".NS", out
+            rec = {"name": shown}
             for f, i in col.items():
                 v = row[i].value
                 if f == "result_date":
                     rec[f] = pd.to_datetime(v, errors="coerce", dayfirst=True)
                 else:
                     rec[f] = float(v) if isinstance(v, (int, float)) else np.nan
-            out[m.group(1).upper() + ".NS"] = rec
+            store[key] = rec
+        by_name = False
+        if not out and out_names:
+            out, by_name = out_names, True
         df = pd.DataFrame.from_dict(out, orient="index")
+        df.attrs["by_name"] = by_name
+        if df.empty:
+            hdr = [str(h) for h in headers[:6]]
+            return pd.DataFrame(), (f"{path}: {n_rows} data rows read, but only {n_links} company names carry a Screener link "
+                                    f"(name column taken as '{headers[name_i]}'; first headers {hdr}; names without links e.g. {samples}). "
+                                    "The file was probably re-saved in Excel/Numbers/Google Sheets, which can drop the links. "
+                                    "Upload the file exactly as downloaded from Screener.in.")
         modified = wb.properties.modified
         info = f"{len(df)} companies from {os.path.basename(path)}" + (f", file dated {modified:%d %b %Y}" if modified else "")
         missing = [f for f in require if f not in col]
