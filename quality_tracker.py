@@ -399,7 +399,8 @@ def build_email_html(df, n_requested):
     ok = df[df["ok"]].sort_values("score", ascending=False)
     bad = df[~df["ok"]]
     ap, a, b = ok[ok["grade"] == "A+"], ok[ok["grade"] == "A"], ok[ok["grade"] == "B"]
-    c, d = (ok["grade"] == "C").sum(), (ok["grade"] == "D").sum()
+    cs, ds = ok[ok["grade"] == "C"], ok[ok["grade"] == "D"]
+    c, d = len(cs), len(ds)
 
     warns = []
     if len(df) < 0.9 * n_requested:
@@ -432,6 +433,8 @@ the latest year is the most recent full year reported, not the trailing 12 month
 <h3>Grade A+: the strongest, with no red flags ({len(ap)})</h3>{table_html(ap) if len(ap) else '<p>None.</p>'}
 <h3>Grade A: strong businesses ({len(a)})</h3>{table_html(a) if len(a) else '<p>None.</p>'}
 <h3>Grade B: good, with some gaps ({len(b)})</h3>{table_html(b) if len(b) else '<p>None.</p>'}
+<h3>Grade C: average or weak on several measures ({len(cs)})</h3>{table_html(cs) if len(cs) else '<p>None.</p>'}
+<h3>Grade D: weak ({len(ds)})</h3>{table_html(ds) if len(ds) else '<p>None.</p>'}
 """
     if len(bad):
         names = ", ".join(sorted(t.replace(".NS", "") for t in bad["ticker"]))
