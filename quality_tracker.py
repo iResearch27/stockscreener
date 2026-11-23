@@ -34,7 +34,8 @@ import yfinance as yf
 # ============================================================
 # CONFIGURATION
 # ============================================================
-STOCKS_FILE = "watchlist.txt"   # one shared list for all trackers
+STOCKS_FILE = os.environ.get("STOCKS_FILE", "watchlist.txt")   # one shared list for all trackers
+RESULTS_PREFIX = "universe_" if os.environ.get("UNIVERSE_MODE") == "1" else ""
 MAX_WORKERS = 6
 MAX_TICKERS = int(os.environ.get("QT_MAX_TICKERS", "0"))   # testing only; 0 = all
 MIN_COVERAGE = 0.6        # share of the score that must be computable, otherwise "insufficient data"
@@ -472,6 +473,9 @@ Yearly figures are only 3 to 4 years deep, which is a short history. A high scor
 
 
 def send_email(subject, html_body):
+    if os.environ.get("SKIP_EMAIL") == "1":
+        print(f"SKIP_EMAIL is set: not sending '{subject}'.")
+        return
     sender = os.environ["GMAIL_USER"]
     password = os.environ["GMAIL_APP_PASSWORD"]
     recipient = os.environ.get("ALERT_RECIPIENT", sender)
@@ -506,10 +510,11 @@ def main():
 
     df = build_table(rows)
     print(df[df["ok"]]["grade"].value_counts().to_string())
-    df.to_csv("quality_scores.csv", index=False)
+    if not RESULTS_PREFIX:
+        df.to_csv("quality_scores.csv", index=False)
     # Saved in the repo for the weekly combined shortlist (combined_shortlist.py)
     os.makedirs("results", exist_ok=True)
-    df.assign(run_date=datetime.now().strftime("%Y-%m-%d")).to_csv("results/quality.csv", index=False)
+    df.assign(run_date=datetime.now().strftime("%Y-%m-%d")).to_csv(f"results/{RESULTS_PREFIX}quality.csv", index=False)
 
     html = build_email_html(df, len(tickers))
     flag = " [CHECK DATA]" if len(df) < 0.9 * len(tickers) else ""

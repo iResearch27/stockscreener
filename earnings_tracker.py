@@ -627,7 +627,12 @@ def main():
         print("No results data, no email.")
         return
 
-    if si is None:
+    if m.UNIVERSE_MODE and os.path.exists("results/universe_candidates.csv"):
+        # Universe run: stage 2 (universe_prefilter.py) already matched these stocks to the Screener export by NSE name and price
+        sc = pd.read_csv("results/universe_candidates.csv").set_index("ticker")
+        sc.attrs["by_name"] = True
+        sc_info = f"{len(sc)} stocks matched to the Screener export in stage 2 (NSE name and price)"
+    elif si is None:
         sc, sc_info = pd.DataFrame(), "screener_import.py is not in the repo"
     else:
         sc, sc_info = si.load_screener(allow_names=True)
@@ -666,7 +671,7 @@ def main():
             "turned_profit", "eps_yoy", "bv_yoy", "reaction", "drift", "runup", "above_sma200", "flag", "src_note",
             "note_profit", "data_note"]
     os.makedirs("results", exist_ok=True)
-    full.reindex(columns=keep).assign(run_date=datetime.now().strftime("%Y-%m-%d")).to_csv("results/earnings.csv", index=False)
+    full.reindex(columns=keep).assign(run_date=datetime.now().strftime("%Y-%m-%d")).to_csv(f"results/{m.RESULTS_PREFIX}earnings.csv", index=False)
 
     warns = m.build_warnings(data, len(tickers)) if data else []
     if n_with < 0.7 * len(tickers):

@@ -30,7 +30,9 @@ import yfinance as yf
 # ============================================================
 # CONFIG
 # ============================================================
-STOCKS_FILE = "watchlist.txt"   # one shared list for all trackers
+STOCKS_FILE = os.environ.get("STOCKS_FILE", "watchlist.txt")   # one shared list for all trackers (the universe workflow points this at candidates.txt)
+UNIVERSE_MODE = os.environ.get("UNIVERSE_MODE") == "1"          # universe run: results saved as results/universe_*.csv, no emails
+RESULTS_PREFIX = "universe_" if UNIVERSE_MODE else ""
 BENCHMARK_TICKER = "^NSEI"
 LOOKBACK_PERIOD = "2y"
 BATCH_SIZE = 50
@@ -561,6 +563,9 @@ def build_email_html(df, nifty_return, data_as_of="", warns=None):
 
 
 def send_email(subject, html_body):
+    if os.environ.get("SKIP_EMAIL") == "1":
+        print(f"SKIP_EMAIL is set: not sending '{subject}'.")
+        return
     sender = os.environ["GMAIL_USER"]
     password = os.environ["GMAIL_APP_PASSWORD"]
     recipient = os.environ.get("ALERT_RECIPIENT", sender)

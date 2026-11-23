@@ -272,7 +272,7 @@ def tag_from_premium(p):
     return "Stretched vs peers"
 
 
-def build_table(tickers, sc, types, peers, type_over):
+def build_table(tickers, sc, types, peers, type_over, lender_ref_override=None):
     rows = []
     lender_vals = []
     for t in tickers:
@@ -281,6 +281,8 @@ def build_table(tickers, sc, types, peers, type_over):
             if pb and roe and not np.isnan(pb) and not np.isnan(roe) and roe > 0:
                 lender_vals.append(pb / roe)
     lender_ref = float(np.median(lender_vals)) if len(lender_vals) >= MIN_PEERS else np.nan
+    if lender_ref_override is not None and not np.isnan(lender_ref_override):
+        lender_ref = lender_ref_override    # universe run: the median over all lenders in the export, not just the candidates
     for t in tickers:
         if t not in sc.index:
             continue
@@ -381,6 +383,7 @@ def notify_problem(reason):
 
 
 def main():
+    global FULL_BY_NAME
     tickers = m.load_tickers(STOCKS_FILE)
     if MAX_TICKERS:
         tickers = tickers[:MAX_TICKERS]
@@ -396,8 +399,17 @@ def main():
     peers, type_over = load_peers(PEERS_FILE)
     print(f"peers.csv: {len(peers)} peer groups, {len(type_over)} type overrides")
     types = None
-    if sc.attrs.get("by_name"):
-        global FULL_BY_NAME
+    lender_override = None
+    if m.UNIVERSE_MODE and os.path.exists("results/universe_candidates.csv"):
+        # Universe run: stage 2 already matched stocks to the export by NSE name and price. Peers named in peers.csv still
+        # resolve against the whole export; stocks without a peer list use Screener's industry P/E.
+        FULL_BY_NAME = sc
+        sc = pd.read_csv("results/universe_candidates.csv").set_index("ticker")
+        lv = sc[sc["lender"].astype(str) == "True"]
+        lv = (lv["pb"] / lv["roe3"])[(lv["roe3"] > 0) & lv["pb"].notna()]
+        lender_override = float(lv.median()) if len(lv) >= MIN_PEERS else None
+        info = f"{len(sc)} stocks matched to the Screener export in stage 2 (NSE name and price); universe candidates"
+    elif sc.attrs.get("by_name"):
         FULL_BY_NAME = sc
         # The export has no links, so match company names to tickers using Yahoo's names.
         names = {}
@@ -423,17 +435,18 @@ def main():
                        "Matching uses the symbol inside each company's link, so the export must be the .xlsx file with the company links intact.")
         return
     types = {t: types[t] for t in known} if types else fetch_types(known)
-    df, lender_ref = build_table(known, sc, types, peers, type_over)
+    df, lender_ref = build_table(known, sc, types, peers, type_over, lender_override)
     if df.empty:
         print("Nothing to value.")
         notify_problem("The export was read, but no stock could be valued.")
         return
     has_hist = any(c.startswith("pe_hist") for c in sc.columns)
     print(df["tag"].value_counts().to_string())
-    df.drop(columns=["notes"]).to_csv("valuation_scores.csv", index=False)
+    if not m.UNIVERSE_MODE:
+        df.drop(columns=["notes"]).to_csv("valuation_scores.csv", index=False)
     # Saved in the repo for the weekly combined shortlist (combined_shortlist.py)
     os.makedirs("results", exist_ok=True)
-    df.drop(columns=["notes"]).assign(run_date=datetime.now().strftime("%Y-%m-%d")).to_csv("results/valuation.csv", index=False)
+    df.drop(columns=["notes"]).assign(run_date=datetime.now().strftime("%Y-%m-%d")).to_csv(f"results/{m.RESULTS_PREFIX}valuation.csv", index=False)
     html = build_email_html(df, len(tickers), info, lender_ref, has_hist)
     m.send_email(f"Valuation Tracker, {datetime.now().strftime('%d %b %Y')}", html)
 

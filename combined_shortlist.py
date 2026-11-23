@@ -11,6 +11,10 @@ Tiers (a stock needs Quality A+/A and an earnings pass to be listed at all):
   3 Good but expensive   valuation rich or stretched against peers
   4 Valuation n/a        cyclical, insurer or not valued: judge on EV/EBITDA and P/B yourself
 Earnings pass: result Strong or Good; for stocks Yahoo cannot grade yearly, EPS growth of 15%+ (marked *).
+
+New ideas: the same tiers for the universe candidates (stocks NOT on the watchlist), from results/universe_quality.csv,
+universe_earnings.csv and universe_valuation.csv, written by the weekly universe workflow (universe_trackers.yml).
+Valuation there uses Screener's industry P/E unless peers.csv has an entry, so read it as a rougher yardstick.
 """
 import os
 import sys
@@ -20,6 +24,7 @@ import numpy as np
 import pandas as pd
 
 RES = "results"
+UNIVERSE_CAP = 20          # rows per tier in the New ideas section of the email (everything is in the CSV)
 STALE_DAYS = 10            # warn when an input file is older than this
 EPS_PASS = 15.0
 TIERS = ["1 Core", "2 Waiting for trend", "3 Good but expensive", "4 Valuation n/a"]
@@ -55,9 +60,9 @@ def pct_s(x, nd=0):
     return "-" if pd.isna(x) else f"{x:+.{nd}f}%"
 
 
-def build():
-    q, e, v = load("quality.csv"), load("earnings.csv"), load("valuation.csv")
-    missing = [n for n, d in (("quality.csv", q), ("earnings.csv", e), ("valuation.csv", v)) if d is None]
+def build(prefix=""):
+    q, e, v = load(f"{prefix}quality.csv"), load(f"{prefix}earnings.csv"), load(f"{prefix}valuation.csv")
+    missing = [f"{prefix}{n}" for n, d in (("quality.csv", q), ("earnings.csv", e), ("valuation.csv", v)) if d is None]
     if missing:
         return None, [f"results/{m} is missing: run that tracker's workflow once so it saves its results." for m in missing]
     warns = []
@@ -100,16 +105,49 @@ def build():
         return "3 Good but expensive" if exp_v.iloc[i] else "4 Valuation n/a"
 
     j["tier"] = [tier(i) for i in range(len(j))]
+    uc = load("universe_candidates.csv") if prefix else None
+    if uc is not None:
+        j = j.join(uc[["name", "ret_6m", "extended"]], how="left")
     return j, warns
 
 
 def tbl(rows, head):
-    th = "".join(f'<th style="text-align:left;padding:3px 8px;background:#eee;font-size:12px;">{h}</th>' for h in head)
-    body = "".join("<tr>" + "".join(f'<td style="padding:3px 8px;font-size:12px;border-bottom:1px solid #eee;">{c}</td>' for c in r) + "</tr>" for r in rows)
-    return f'<table style="border-collapse:collapse;">{th and "<tr>" + th + "</tr>"}{body}</table>'
+    """Compact HTML (no per-cell styles) so the email stays under Gmail's 102 KB clipping limit."""
+    th = "".join(f"<th align='left' bgcolor='#eeeeee'>{h}</th>" for h in head)
+    body = "".join(f"<tr{' bgcolor=#f7f7f7' if k % 2 else ''}>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for k, r in enumerate(rows))
+    return f"<table cellpadding='3' cellspacing='0' style='border-collapse:collapse;font-size:12px;'><tr>{th}</tr>{body}</table>"
 
 
-def email_html(j, warns, changes):
+def tiers_html(j, universe=False, cap=None):
+    head = ["Ticker", "Sector", "Quality", "Earnings", "Evidence", "Net profit YoY", "Since result", "Trend", "Valuation", "Premium", "PEG", "Quality flags", "Earnings note"]
+    if universe:
+        head = ["Ticker", "Company", "6M return"] + head[2:]
+    h = ""
+    for t in TIERS:
+        sub = j[j["tier"] == t].sort_values("score", ascending=False)
+        shown = sub.head(cap) if cap else sub
+        h += f"<h3>{t} ({len(sub)})</h3><p style='font-size:12px;'>{TIER_TEXT[t]}</p>"
+        if sub.empty:
+            h += "<p>None right now.</p>"
+            continue
+        rows = []
+        for i, r in shown.iterrows():
+            ni = "turned profit" if str(r["turned_profit"]) == "True" else pct_s(r["ni_yoy"])
+            prem = "-" if pd.isna(r["premium"]) else f"{r['premium']:+.0f}%"
+            peg = "-" if pd.isna(r["peg"]) else f"{r['peg']:.1f}"
+            note = "; ".join(x for x in [r["flag"] if isinstance(r["flag"], str) else "", r["src_note"] if isinstance(r["src_note"], str) and "ignored" in r["src_note"] else ""] if x) or "-"
+            fl = r["flags"] if isinstance(r["flags"], str) and r["flags"] else "none"
+            lead = [i, str(r["name"])[:22], (pct_s(r["ret_6m"]) + (" (extended)" if str(r["extended"]) == "True" else ""))] if universe else [i, str(r["sector"])[:20]]
+            rows.append(lead + [f'{r["grade"]} ({r["score"]:.0f})', r["earn"], r["evidence"], ni, pct_s(r["drift"], 1),
+                         r["trend"], str(r["tag"]).replace(" vs peers", ""), prem, peg,
+                         f'<span style="color:#a00;">{fl}</span>' if fl != "none" else fl, note])
+        h += tbl(rows, head)
+        if cap and len(sub) > cap:
+            h += f"<p style='font-size:12px;'>{len(sub) - cap} more in the CSV.</p>"
+    return h
+
+
+def email_html(j, warns, changes, ju=None, uwarns=(), uchanges=()):
     h = f'<html><body style="font-family:Arial,sans-serif;font-size:13px;"><h2>Combined Shortlist, {datetime.now().strftime("%d %b %Y")}</h2>'
     n = {t: int((j["tier"] == t).sum()) for t in TIERS}
     h += (f'<p><b>{n[TIERS[0]]}</b> core, {n[TIERS[1]]} waiting for trend, {n[TIERS[2]]} good but expensive, {n[TIERS[3]]} valuation n/a, '
@@ -118,24 +156,19 @@ def email_html(j, warns, changes):
         h += f'<p style="color:#a00;">{w}</p>'
     if changes:
         h += "<p><b>Changes since the last run</b><br>" + "<br>".join(changes) + "</p>"
-    head = ["Ticker", "Sector", "Quality", "Earnings", "Evidence", "Net profit YoY", "Since result", "Trend", "Valuation", "Premium", "PEG", "Quality flags", "Earnings note"]
-    for t in TIERS:
-        sub = j[j["tier"] == t].sort_values("score", ascending=False)
-        h += f"<h3>{t} ({len(sub)})</h3><p style='font-size:12px;'>{TIER_TEXT[t]}</p>"
-        if sub.empty:
-            h += "<p>None right now.</p>"
-            continue
-        rows = []
-        for i, r in sub.iterrows():
-            ni = "turned profit" if str(r["turned_profit"]) == "True" else pct_s(r["ni_yoy"])
-            prem = "-" if pd.isna(r["premium"]) else f"{r['premium']:+.0f}%"
-            peg = "-" if pd.isna(r["peg"]) else f"{r['peg']:.1f}"
-            note = "; ".join(x for x in [r["flag"] if isinstance(r["flag"], str) else "", r["src_note"] if isinstance(r["src_note"], str) and "ignored" in r["src_note"] else ""] if x) or "-"
-            fl = r["flags"] if isinstance(r["flags"], str) and r["flags"] else "none"
-            rows.append([i, str(r["sector"])[:20], f'{r["grade"]} ({r["score"]:.0f})', r["earn"], r["evidence"], ni, pct_s(r["drift"], 1),
-                         r["trend"], str(r["tag"]).replace(" vs peers", ""), prem, peg,
-                         f'<span style="color:#a00;">{fl}</span>' if fl != "none" else fl, note])
-        h += tbl(rows, head)
+    h += tiers_html(j)
+    if ju is not None:
+        nu = {t: int((ju["tier"] == t).sum()) for t in TIERS}
+        h += ('<hr><h2>New ideas: stocks not on your watchlist</h2>'
+              f'<p>From the weekly universe screen: <b>{nu[TIERS[0]]}</b> core, {nu[TIERS[1]]} waiting for trend, {nu[TIERS[2]]} good but expensive, '
+              f'{nu[TIERS[3]]} valuation n/a, out of {len(ju)} candidates that went through the full Quality, Earnings and Valuation trackers. '
+              'Valuation here uses Screener\'s industry P/E unless peers.csv has an entry, so it is a rougher yardstick. '
+              '"Extended" means up more than 100% in six months. Check the business before anything else: these are names you have not looked at.</p>')
+        for w in uwarns:
+            h += f'<p style="color:#a00;">{w}</p>'
+        if uchanges:
+            h += "<p><b>New ideas: changes since the last run</b><br>" + "<br>".join(uchanges) + "</p>"
+        h += tiers_html(ju, universe=True, cap=UNIVERSE_CAP)
     h += """<h3>How to read this</h3>
 <p style="font-size:12px;">Quality, Earnings and Valuation are the latest saved results of the three trackers (see their own emails for the full tables and the definitions).
 <b>Net profit only (Screener)</b> and <b>EPS only (Yahoo)</b> are weaker evidence than <b>EBIT-graded</b>: one-offs and tax can distort net profit and EPS.
@@ -144,39 +177,60 @@ Valuation is a weak guide to the next 1 to 3 months, and a strong quarter does n
     return h
 
 
+def tier_changes(path, j):
+    if not os.path.exists(path):
+        return []
+    prev = pd.read_csv(path, keep_default_na=False).set_index("ticker")["tier"]
+    ch = []
+    for t in TIERS:
+        now, was = set(j.index[j["tier"] == t]), set(prev.index[prev == t])
+        new = sorted(now - was)
+        if new:
+            ch.append(f"<b>Joined {t}:</b> " + ", ".join(f"{x}" + (f" (was {prev.get(x) or 'not listed'})" if x in prev.index else "") for x in new))
+    gone = sorted(x for x in prev.index[prev != ""] if x in j.index and j.loc[x, "tier"] == "")
+    if gone:
+        ch.append("<b>Dropped off the list:</b> " + ", ".join(gone))
+    return ch
+
+
+def save(j, path):
+    out = j.reset_index().rename(columns={"index": "ticker"})
+    os.makedirs(RES, exist_ok=True)
+    out.assign(run_date=datetime.now().strftime("%Y-%m-%d")).to_csv(path, index=False)
+
+
 def main():
+    import momentum_tracker as m
     j, warns = build()
     if j is None:
         for w in warns:
             print("WARNING:", w)
         try:
-            import momentum_tracker as m
             m.send_email(f"Combined Shortlist, {datetime.now().strftime('%d %b %Y')} [NO DATA]",
                          "<html><body><p>" + "<br>".join(warns) + "</p></body></html>")
         except Exception as ex:
             print("Could not send the problem email:", ex)
         sys.exit(0)
     prev_path = os.path.join(RES, "shortlist.csv")
-    changes = []
-    if os.path.exists(prev_path):
-        prev = pd.read_csv(prev_path, keep_default_na=False).set_index("ticker")["tier"]
-        for t in TIERS:
-            now, was = set(j.index[j["tier"] == t]), set(prev.index[prev == t])
-            new = sorted(now - was)
-            if new:
-                changes.append(f"<b>Joined {t}:</b> " + ", ".join(f"{x}" + (f" (was {prev.get(x) or 'not listed'})" if x in prev.index else "") for x in new))
-        gone = sorted(x for x in prev.index[prev != ""] if x in j.index and j.loc[x, "tier"] == "")
-        if gone:
-            changes.append("<b>Dropped off the list:</b> " + ", ".join(gone))
-    out = j.reset_index().rename(columns={"index": "ticker"})
-    os.makedirs(RES, exist_ok=True)
-    out.assign(run_date=datetime.now().strftime("%Y-%m-%d")).to_csv(prev_path, index=False)
+    changes = tier_changes(prev_path, j)
+    save(j, prev_path)
     print(j["tier"].value_counts().to_string())
-    for w in warns:
+    # New ideas: universe candidates (only when the universe workflow has produced its three results files)
+    ju, uwarns, uchanges = None, [], []
+    if any(os.path.exists(os.path.join(RES, f"universe_{n}.csv")) for n in ("quality", "earnings", "valuation")):
+        ju, uwarns = build("universe_")
+        if ju is not None:
+            upath = os.path.join(RES, "universe_shortlist.csv")
+            uchanges = tier_changes(upath, ju)
+            save(ju, upath)
+            print("New ideas:", ju["tier"].value_counts().to_dict())
+        else:
+            warns = warns + ["New ideas not shown: " + " ".join(uwarns)]
+            uwarns = []
+    for w in warns + uwarns:
         print("WARNING:", w)
-    html = email_html(j, warns, changes)
-    import momentum_tracker as m
-    m.send_email(f"Combined Shortlist, {datetime.now().strftime('%d %b %Y')}" + (" [CHECK DATA]" if warns else ""), html)
+    html = email_html(j, warns, changes, ju, uwarns, uchanges)
+    m.send_email(f"Combined Shortlist, {datetime.now().strftime('%d %b %Y')}" + (" [CHECK DATA]" if warns or uwarns else ""), html)
 
 
 if __name__ == "__main__":
